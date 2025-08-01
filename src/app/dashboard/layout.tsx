@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+
+import "../globals.css";
 
 
 const geistSans = Geist({
@@ -25,7 +26,12 @@ export const viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -34,7 +40,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
     <head />
     <body>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
             {children}
+          </SidebarInset>
+      </SidebarProvider>
+        <Toaster position="bottom-right" richColors />
+      </ThemeProvider>
     </body>
   </html>
   );

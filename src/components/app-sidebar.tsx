@@ -3,20 +3,13 @@
 import * as React from "react"
 import {
   BarChart3,
-  ShoppingCart,
-  Package,
-  ShoppingBag,
-  History,
-  Users,
-  Settings,
-  AlertTriangle,
+  MapPin,
   TrendingUp,
-  FileText,
   Smartphone,
+  ScrollText,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { CompanyHeader } from "@/components/company-header"
 import {
@@ -31,13 +24,13 @@ import {
 const data = {
   user: {
     name: "Usuario",
-    email: "usuario@todofundas.com",
+    email: "usuario@librescraping.com",
     avatar: "/avatars/default.jpg",
   },
   company: {
-    name: "TodoFundas",
-    logo: Smartphone,
-    plan: "Sistema de Gestión",
+    name: "Libre Scraping",
+    logo: ScrollText,
+    plan: "Sistema de visualización de datos de redes sociales",
   },
   navMain: [
     {
@@ -47,59 +40,56 @@ const data = {
       isActive: true,
     },
     {
-      title: "Punto de Venta",
-      url: "/sales",
-      icon: ShoppingCart,
-      items: [
-        {
-          title: "Nueva Venta",
-          url: "/sales/new",
-        },
-      ],
+      title: "Informe General",
+      url: "/dashboard/igeneral",
+      icon: TrendingUp,
     },
     {
-      title: "Inventario",
-      url: "/inventory",
-      icon: Package,
-      items: [
-        {
-          title: "Productos",
-          url: "/inventory/products",
-        },
-        {
-          title: "Nuevo Producto",
-          url: "/inventory/products/new",
-        },
-      ],
+      title: "Santa Cruz",
+      url: "/dashboard/santacruz",
+      icon: MapPin,
     },
     {
-      title: "Compras",
-      url: "/purchases",
-      icon: ShoppingBag,
+      title: "Cochabamba",
+      url: "/dashboard/cochabamba",
+      icon: MapPin,
     },
     {
-      title: "Reportes",
-      url: "/reports",
-      icon: FileText,
-    },
-  ],
-  quickAccess: [
-    {
-      name: "Nueva Venta",
-      url: "/sales/new",
-      icon: ShoppingCart,
+      title: "La Paz",
+      url: "/dashboard/lapaz",
+      icon: MapPin,
     },
     {
-      name: "Nuevo Producto",
-      url: "/inventory/products/new",
-      icon: Package,
+      title: "Oruro",
+      url: "/dashboard/oruro",
+      icon: MapPin,
     },
     {
-      name: "Configuración",
-      url: "/settings",
-      icon: Settings,
+      title: "Potosí",
+      url: "/dashboard/potosi",
+      icon: MapPin,
     },
-  ],
+    {
+      title: "Tarija",
+      url: "/dashboard/tarija",
+      icon: MapPin,
+    },
+    {
+      title: "Chuquisaca",
+      url: "/dashboard/chuquisaca",
+      icon: MapPin,
+    },
+    {
+      title: "Beni",
+      url: "/dashboard/beni",
+      icon: MapPin,
+    },
+    {
+      title: "Pando",
+      url: "/dashboard/pando",
+      icon: MapPin,
+    }
+  ]
 }
 
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user?: { name: string; email: string; avatar: string } }) {
@@ -110,7 +100,6 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.quickAccess} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user || data.user} />

@@ -9,7 +9,8 @@ datasource db {
 }
 // POSTID	PERFIL	NOMBREPAGINA	PERFILURL	POSTURL	TEXTO	HASHTAGS	FECHAPUBLICACION	LIKES	COMENTARIOS	COMPARTIDOS	IMG	FOTOPERFIL	REDSOCIAL
 model face_scrap {
-  postid String @id @default(uuid())
+  id Int @id @default(autoincrement())
+  postid String
   perfil String
   nombrepagina String
   perfilurl String
@@ -23,5 +24,49 @@ model face_scrap {
   img String
   fotoperfil String
   redsocial String
+  departamento String
+  titularidad String
 }
+
+model insta_scrap {
+  id Int @id @default(autoincrement())
+  postid String 
+  perfil String
+  nombrepagina String
+  perfilurl String
+  posturl String
+  texto String
+  hashtags String
+  fechapublicacion String
+  likes Int
+  comentarios Int
+  compartidos Int
+  img String
+  fotoperfil String
+  redsocial String
+  departamento String
+  titularidad String
+}
+
+model tiktok_scrap {
+  id Int @id @default(autoincrement())
+  postid String 
+  perfil String
+  nombrepagina String
+  perfilurl String
+  posturl String
+  texto String
+  hashtags String
+  fechapublicacion String
+  likes Int
+  comentarios Int
+  compartidos Int
+  img String
+  fotoperfil String
+  redsocial String
+  departamento String
+  titularidad String
+  vistas Int
+}
+
 
