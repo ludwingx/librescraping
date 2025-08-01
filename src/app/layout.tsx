@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Libre Scraping",
+  description: "Aplicación para visualizar publicaciones de perfiles de Facebook extraídas automáticamente.",
+  keywords: ["libre scraping", "scraping", "facebook", "publicaciones", "perfiles", "automático"],
+  authors: [{ name: "Other Mind" }]
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner";
+import { NavbarWrapper } from "@/components/navbar-wrapper";
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <div className="min-h-screen flex flex-col">
+            {/* Mostrar navbar solo en rutas distintas de '/' */}
+            <NavbarWrapper />
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
+          <Toaster position="bottom-right" richColors />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

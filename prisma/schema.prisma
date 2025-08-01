@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+// POSTID	PERFIL	NOMBREPAGINA	PERFILURL	POSTURL	TEXTO	HASHTAGS	FECHAPUBLICACION	LIKES	COMENTARIOS	COMPARTIDOS	IMG	FOTOPERFIL	REDSOCIAL
+model face_scrap {
+  postid String @id @default(uuid())
+  perfil String
+  nombrepagina String
+  perfilurl String
+  posturl String
+  texto String
+  hashtags String
+  fechapublicacion String
+  likes Int
+  comentarios Int
+  compartidos Int
+  img String
+  fotoperfil String
+  redsocial String
+}
+
