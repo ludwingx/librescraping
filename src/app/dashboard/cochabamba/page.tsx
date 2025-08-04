@@ -45,7 +45,53 @@ export default async function Page() {
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[300px]">
               <h2 className="text-2xl font-bold mb-4">Publicaciones de Cochabamba</h2>
-              {/* Aquí puedes renderizar la tabla de publicaciones como en dashboard */}
+              <div className="overflow-x-auto p-4 bg-white rounded-lg shadow">
+                <table className="min-w-full border border-gray-200 rounded-lg text-sm text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-2 w-14 text-center border">Foto</th>
+                      <th className="px-4 py-2 min-w-[30px] border">Nombre</th>
+                      <th className="px-4 py-2 min-w-[200px] border">Texto</th>
+                      <th className="px-4 py-2 w-24 border">Titularidad</th>
+                      <th className="px-4 py-2 w-24 border">Departamento</th>
+                      <th className="px-4 py-2 w-20 text-center border">👍 Me gusta</th>
+                      <th className="px-4 py-2 w-20 text-center border">💬 Comentarios</th>
+                      <th className="px-4 py-2 w-20 text-center border">🔄 Compartidos</th>
+                      <th className="px-4 py-2 w-14 text-center border">Miniatura</th>
+                      <th className="px-4 py-2 w-24 border">Red Social</th>
+                      <th className="px-4 py-2 w-28 border">Fecha y hora</th>
+                      <th className="px-4 py-2 w-20 text-center border">Ver post</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {posts.map((post: any) => (
+                      <tr key={post.postid} className="odd:bg-white even:bg-gray-50">
+                        <td className="px-4 py-2 text-center border">
+                          <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        </td>
+                        <td className="px-4 py-2 border">
+                          <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
+                          <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
+                        </td>
+                        <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
+                        <td className="px-4 py-2 border">{post.titularidad || ""}</td>
+                        <td className="px-4 py-2 border">{post.departamento || ""}</td>
+                        <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
+                        <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
+                        <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
+                        <td className="px-4 py-2 text-center border">
+                          <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        </td>
+                        <td className="px-4 py-2 border">{post.redsocial}</td>
+                        <td className="px-4 py-2 border">{post.fechapublicacion}</td>
+                        <td className="px-4 py-2 text-center border">
+                          <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
