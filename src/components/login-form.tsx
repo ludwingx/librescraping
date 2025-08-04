@@ -16,7 +16,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
-  const [state, formAction, pending] = useActionState(async (prevState: any, formData: FormData) => {
+  const [state, formAction, pending] = useActionState(async (prevState: unknown, formData: FormData) => {
     const result = await loginAction(formData)
     if (result?.success) {
       toast.success("¡Inicio de sesión exitoso! Redirigiendo...")

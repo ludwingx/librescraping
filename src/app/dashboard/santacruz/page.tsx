@@ -92,7 +92,7 @@ export default async function Page() {
             <BoletinDownloader posts={allPosts} titularidades={titularidades} sinActividad={sinActividadRegistros} />
           </div>
           <div className="flex flex-col gap-12">
-          {titularidades.filter(tit => tit !== "SIN ACTIVIDAD EN RRSS").map((tit) => (
+          {titularidades.filter(tit => tit !== "SIN ACTIVIDAD EN RRSS").map((tit: string) => (
             <section key={tit} className="mb-12">
               <div className="flex items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold">{tit}</h2>

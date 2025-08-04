@@ -135,14 +135,28 @@ export async function createUserAction(formData: FormData) {
     if (typeof error === 'object' && error !== null) {
       // Prisma error
       if ('code' in error && error.code === 'P2002') {
-        if ('meta' in error && (error as any).meta?.target?.includes('email')) {
+        if (
+  'meta' in error &&
+  error.meta &&
+  typeof error.meta === 'object' &&
+  'target' in error.meta &&
+  Array.isArray((error.meta as { target?: unknown }).target) &&
+  ((error.meta as { target: string[] }).target).includes('email')
+) {
           return { error: 'El correo electrónico ya está en uso' };
         }
-        if ('meta' in error && (error as any).meta?.target?.includes('username')) {
+        if (
+  'meta' in error &&
+  error.meta &&
+  typeof error.meta === 'object' &&
+  'target' in error.meta &&
+  Array.isArray((error.meta as { target?: unknown }).target) &&
+  ((error.meta as { target: string[] }).target).includes('username')
+) {
           return { error: 'El nombre de usuario ya está en uso' };
         }
       }
-      return { error: 'Error interno del servidor: ' + ((error as any).message || error.toString()) };
+      return { error: 'Error interno del servidor: ' + ((error as { message?: string }).message || error.toString()) };
     }
     return { error: 'Error interno del servidor: ' + String(error) };
   }
