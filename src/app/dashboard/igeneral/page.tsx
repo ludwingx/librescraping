@@ -97,7 +97,7 @@ export default async function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: { [key: string]: any }) => (post.nombrepagina || '').toLowerCase() === 'tuto quiroga').map((post: { [key: string]: any }) => (
+                  {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: PostGeneral) => (post.nombrepagina || '').toLowerCase() === 'tuto quiroga').map((post: PostGeneral) => (
                     <tr key={`tuto-${post.postid}-${post.redsocial}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
                         <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />

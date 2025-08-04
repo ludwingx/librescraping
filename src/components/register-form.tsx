@@ -23,8 +23,12 @@ export function RegisterForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [state, formAction, pending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+  interface RegisterState {
+  error?: string | Record<string, string[]>;
+  success?: boolean;
+}
+const [state, formAction, pending] = useActionState(
+    async (prevState: RegisterState | null, formData: FormData) => {
       if (formData.get("password") !== formData.get("confirmPassword")) {
         setPasswordError("Las contraseñas no coinciden");
         return prevState;
