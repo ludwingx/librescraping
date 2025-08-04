@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import Image from "next/image";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, } from "@/components/ui/breadcrumb";
 
 interface PostGeneral {
   postid: string;
@@ -47,7 +47,7 @@ export default async function Page() {
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center justify-between w-full gap-2 px-4">
             <div className="flex items-center gap-2 w-full">
-              <SidebarTrigger className="-ml-1" />
+              <AppSidebar />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               <Breadcrumb>
                 <BreadcrumbList>
@@ -57,8 +57,8 @@ export default async function Page() {
                 </BreadcrumbList>
               </Breadcrumb>
               <div className="flex items-center gap-2 ml-auto pr-2">
-                <img className="w-35 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" />
-                <img className="w-22 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" />
+                <Image src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" width={40} height={40} className="w-10 h-10 object-contain" />
+                <Image src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" width={40} height={40} className="w-10 h-10 object-contain" />
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default async function Page() {
                   {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: PostGeneral) => (post.nombrepagina || '').toLowerCase() === 'tuto quiroga').map((post: PostGeneral) => (
                     <tr key={`tuto-${post.postid}-${post.redsocial}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                       </td>
                       <td className="px-4 py-2 text-blue-600 underline border">
                         <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -113,7 +113,7 @@ export default async function Page() {
                       <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
                       <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
                       <td className="px-4 py-2 text-center border">
-                        <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                       </td>
                       
                       <td className="px-4 py-2 border">{post.fechapublicacion}</td>
@@ -157,7 +157,7 @@ export default async function Page() {
                   {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: PostGeneral) => (post.nombrepagina || '').toLowerCase() === 'juan pablo velasco').map((post: PostGeneral) => (
                     <tr key={`jpvelasco-${post.postid}-${post.redsocial}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                       </td>
                       <td className="px-4 py-2 text-blue-600 underline border">
                         <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -170,7 +170,7 @@ export default async function Page() {
                       <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
                       <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
                       <td className="px-4 py-2 text-center border">
-                        <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                       </td>
                       
                       <td className="px-4 py-2 border">{post.fechapublicacion}</td>
@@ -214,7 +214,7 @@ export default async function Page() {
                   {facebookPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`facebook-${post.postid}-Facebook-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                       </td>
                       <td className="px-4 py-2 text-blue-600 underline border">
                         <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -227,7 +227,7 @@ export default async function Page() {
                       <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
                       <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
                       <td className="px-4 py-2 text-center border">
-                        <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                       </td>
                       
                       <td className="px-4 py-2 border">{post.fechapublicacion}</td>
@@ -272,7 +272,7 @@ export default async function Page() {
                   {instagramPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`instagram-${post.postid}-Instagram-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                       </td>
                       <td className="px-4 py-2 text-blue-600 underline border">
                         <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -285,7 +285,7 @@ export default async function Page() {
                       <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
                       <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
                       <td className="px-4 py-2 text-center border">
-                        <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                       </td>
                       
                       <td className="px-4 py-2 border">{post.fechapublicacion}</td>
@@ -330,7 +330,7 @@ export default async function Page() {
                   {tiktokPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`tiktok-${post.postid}-TikTok-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                       </td>
                       <td className="px-4 py-2 text-blue-600 underline border">
                         <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -343,7 +343,7 @@ export default async function Page() {
                       <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
                       <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
                       <td className="px-4 py-2 text-center border">
-                        <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                       </td>
                       
                       <td className="px-4 py-2 border">{post.fechapublicacion}</td>

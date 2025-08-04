@@ -1,20 +1,13 @@
-import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
+  BreadcrumbList
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
-  SidebarInset,
-  SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-
-import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
 
 export default async function Page  () {

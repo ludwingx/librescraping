@@ -1,4 +1,3 @@
-import { Footer } from "@/components/footer";
 import { RegisterForm } from "@/components/register-form";
 
 import { getSession } from "@/app/actions/auth";

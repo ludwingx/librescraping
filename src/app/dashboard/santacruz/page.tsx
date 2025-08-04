@@ -6,14 +6,10 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { BoletinDownloader } from "./BoletinDownloader";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import prisma from "@/lib/prisma";
+import Image from 'next/image';
 
 interface PostGeneral {
   id: number;
@@ -83,7 +79,6 @@ export default async function Page() {
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <div className="flex items-center justify-between w-full gap-2 px-4">
           <div className="flex items-center gap-2 w-full">
-            <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
                 <BreadcrumbList>
@@ -97,8 +92,8 @@ export default async function Page() {
                 </BreadcrumbList>
               </Breadcrumb>
               <div className="flex items-center gap-2 ml-auto pr-2">
-                <img className="w-35 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" />
-                <img className="w-22 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" />
+                <Image className="w-35 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" width={120} height={40} />
+                <Image className="w-22 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" width={80} height={40} />
               </div>
             </div>
           </div>
@@ -129,9 +124,9 @@ export default async function Page() {
                         <TableHead className="px-2 py-2 min-w-[200px]">Texto</TableHead>
                         <TableHead className="px-2 py-2 w-24">Titularidad</TableHead>
                         <TableHead className="px-2 py-2 w-24">Departamento</TableHead>
-                        <TableHead className="px-2 py-2 w-20 text-center">👍 Me gusta</TableHead>
-                        <TableHead className="px-2 py-2 w-20 text-center">💬 Comentarios</TableHead>
-                        <TableHead className="px-2 py-2 w-20 text-center">🔄 Compartidos</TableHead>
+                        <TableHead className="px-2 py-2 w-20 text-center">&quot;Me gusta&quot;</TableHead>
+                        <TableHead className="px-2 py-2 w-20 text-center">&quot;Comentarios&quot;</TableHead>
+                        <TableHead className="px-2 py-2 w-20 text-center">&quot;Compartidos&quot;</TableHead>
                         <TableHead className="px-2 py-2 w-14 text-center">Miniatura</TableHead>
                         <TableHead className="px-2 py-2 w-24">Red Social</TableHead>
                         <TableHead className="px-2 py-2 w-28">Fecha y hora</TableHead>
@@ -142,7 +137,7 @@ export default async function Page() {
                       {postsPorTitularidad[tit].map((post: PostGeneral) => (
                         <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
                           <TableCell className="px-2 py-2 text-center">
-                            <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
+                            <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
                           </TableCell>
                           <TableCell className="px-1 py-2 max-w-[120px] truncate">
                             <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
@@ -151,11 +146,11 @@ export default async function Page() {
                           <TableCell className="px-2 py-2 max-w-xs truncate" title={post.texto}>{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</TableCell>
                           <TableCell className="px-2 py-2">{post.titularidad || ""}</TableCell>
                           <TableCell className="px-2 py-2">{post.departamento || ""}</TableCell>
-                          <TableCell className="px-2 py-2 text-center">👍 {post.likes}</TableCell>
-                          <TableCell className="px-2 py-2 text-center">💬 {post.comentarios}</TableCell>
-                          <TableCell className="px-2 py-2 text-center">🔄 {post.compartidos}</TableCell>
+                          <TableCell className="px-2 py-2 text-center">{post.likes}</TableCell>
+                          <TableCell className="px-2 py-2 text-center">{post.comentarios}</TableCell>
+                          <TableCell className="px-2 py-2 text-center">{post.compartidos}</TableCell>
                           <TableCell className="px-2 py-2 text-center">
-                            <img src={post.img} alt="miniatura" className="w-14 h-10 object-cover rounded" />
+                            <Image src={post.img || '/default-image.png'} alt={post.nombrepagina} width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
                           </TableCell>
                           <TableCell className="px-2 py-2">{post.redsocial}</TableCell>
                           <TableCell className="px-2 py-2">{post.fechapublicacion}</TableCell>
