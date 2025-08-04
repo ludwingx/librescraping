@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
 
 export default async function Page  () {
-  const posts = await prisma.face_scrap.findMany({
+  const posts = await prisma.scrap_post.findMany({
+    where: { redsocial: "Facebook" },
     orderBy: { fechapublicacion: "desc" },
     take: 20,
   });

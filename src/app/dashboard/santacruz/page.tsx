@@ -11,13 +11,13 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { BoletinDownloader } from "./BoletinDownloader";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import prisma from "@/lib/prisma";
 
 export default async function Page() {
-  // Consultas a cada modelo según la red social
-  const facebookPosts = (await prisma.face_scrap.findMany({
+  // Obtener todos los posts de Santa Cruz
+  const allPosts = await prisma.scrap_post.findMany({
     where: {
       departamento: {
         equals: "SANTA CRUZ",
@@ -25,45 +25,37 @@ export default async function Page() {
       }
     },
     orderBy: { fechapublicacion: "desc" },
-    take: 100,
-  })).map(post => ({ ...post, redsocial: "Facebook" }));
-  const instagramPosts = (await prisma.insta_scrap.findMany({
-    where: {
-      departamento: {
-        equals: "SANTA CRUZ",
-        mode: "insensitive"
-      }
-    },
-    orderBy: { fechapublicacion: "desc" },
-    take: 100,
-  })).map(post => ({ ...post, redsocial: "Instagram" }));
-  const tiktokPosts = (await prisma.tiktok_scrap.findMany({
-    where: {
-      departamento: {
-        equals: "SANTA CRUZ",
-        mode: "insensitive"
-      }
-    },
-    orderBy: { fechapublicacion: "desc" },
-    take: 100,
-  })).map(post => ({ ...post, redsocial: "TikTok" }));
+    take: 300,
+  });
 
-  // Unifica todos los posts
-  const allPosts = [...facebookPosts, ...instagramPosts, ...tiktokPosts];
+  // Obtener lista de sin actividad en RRSS desde la tabla sin_publicacion
+  const sinActividadRegistros = await prisma.sin_publicacion.findMany({
+    where: {
+      departamento: {
+        equals: "SANTA CRUZ",
+        mode: "insensitive"
+      }
+    },
+    orderBy: { fecha_scrap: "desc" },
+    take: 100,
+  });
+  const sinActividad = sinActividadRegistros.map(r => `${r.candidato} - ${r.titularidad} - ${r.departamento}`);
 
-  // Titularidades a mostrar
+
   const titularidades = [
+    "PRESIDENTE",
+    "VICEPRESIDENTE",
     "SENADOR",
     "DIPUTADO PLURINOMINAL",
     "DIPUTADO UNINOMINAL URBANO",
     "DIPUTADO UNINOMINAL RURAL",
     "DIPUTADO SUPRAESTATAL",
-    "DIPUTADO ESPECIAL"
+    "DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL",
+    "SIN ACTIVIDAD EN RRSS"
   ];
 
   console.log(allPosts);
 
-  // Agrupa por titularidad
   const postsPorTitularidad = Object.fromEntries(
     titularidades.map(tit => [tit, allPosts.filter(p => (p.titularidad || "").toUpperCase() === tit)])
   );
@@ -95,19 +87,19 @@ export default async function Page() {
           </div>
         </header>
         <div className="w-full max-w-screen-xl mx-auto px-2 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10 gap-4">
+           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10 gap-4">
             <h1 className="text-3xl font-bold">Publicaciones por Titularidad</h1>
-            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">Descargar Boletín</Button>
+            <BoletinDownloader posts={allPosts} titularidades={titularidades} sinActividad={sinActividadRegistros} />
           </div>
           <div className="flex flex-col gap-12">
-          {titularidades.map((tit) => (
+          {titularidades.filter(tit => tit !== "SIN ACTIVIDAD EN RRSS").map((tit) => (
             <section key={tit} className="mb-12">
               <div className="flex items-center gap-4 mb-6">
                 <h2 className="text-2xl font-bold">{tit}</h2>
                 <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
               </div>
               {postsPorTitularidad[tit].length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[180px]">
+                <div className="flex flex-col items-center justify-center min-h-[30px]">
                   <h3 className="text-lg text-muted-foreground">No hay publicaciones extraídas para esta titularidad</h3>
                 </div>
               ) : (
@@ -131,7 +123,7 @@ export default async function Page() {
                     </TableHeader>
                     <TableBody>
                       {postsPorTitularidad[tit].map((post: any) => (
-                        <TableRow key={post.postid + post.redsocial} className="odd:bg-white even:bg-gray-50">
+                        <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
                           <TableCell className="px-2 py-2 text-center">
                             <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
                           </TableCell>
@@ -161,6 +153,42 @@ export default async function Page() {
               )}
             </section>
           ))}
+
+          {/* Sección especial para Sin Actividad en RRSS */}
+          <section key="sin-actividad" className="mb-12">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-2xl font-bold">Sin Actividad en RRSS</h2>
+              <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+            </div>
+            {sinActividadRegistros.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[100px]">
+                <h3 className="text-lg text-muted-foreground">Todos tuvieron actividad en las últimas 24 horas</h3>
+              </div>
+            ) : (
+              <div className="w-full overflow-x-auto p-2">
+                <Table className="min-w-[700px] border border-gray-200 rounded-lg bg-white text-sm">
+                  <TableHeader>
+                    <TableRow className="bg-gray-100">
+                      <TableHead className="px-2 py-2">Nombre</TableHead>
+                      <TableHead className="px-2 py-2">Titularidad</TableHead>
+                      <TableHead className="px-2 py-2">Departamento</TableHead>
+                      <TableHead className="px-2 py-2">Red Social</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sinActividadRegistros.map((r) => (
+                      <TableRow key={r.id} className="odd:bg-white even:bg-gray-50">
+                        <TableCell className="px-2 py-2">{r.candidato}</TableCell>
+                        <TableCell className="px-2 py-2">{r.titularidad}</TableCell>
+                        <TableCell className="px-2 py-2">{r.departamento}</TableCell>
+                        <TableCell className="px-2 py-2">{r.redsocial}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </section>
         </div>
       </div>
 

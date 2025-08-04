@@ -13,13 +13,24 @@ import { Package, User, Lock, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
 
+import { useState } from "react";
+
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [state, formAction, pending] = useActionState(
     async (prevState: any, formData: FormData) => {
+      if (formData.get("password") !== formData.get("confirmPassword")) {
+        setPasswordError("Las contraseñas no coinciden");
+        return prevState;
+      } else {
+        setPasswordError("");
+      }
       const result = await createUserAction(formData);
       if (result?.success) {
         toast.success("¡Cuenta creada correctamente! Redirigiendo al login...");
@@ -41,51 +52,67 @@ export function RegisterForm({
           <form action={formAction} className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
-                <div className="flex items-center mb-4">
-                  <Package className="h-8 w-8 text-primary mr-2" />
-                  <h1 className="text-2xl font-bold">TodoFundas</h1>
-                </div>
-                <h2 className="text-xl font-semibold">Crear cuenta</h2>
-                <p className="text-muted-foreground text-balance">
-                  Únete a TodoFundas y gestiona tu inventario
-                </p>
+                <div className="flex flex-col items-center mb-4">
+  <h1 className="text-2xl font-bold">Libre Scraping</h1>
+</div>
+<h2 className="text-xl font-semibold">Crear cuenta</h2>
+<p className="text-muted-foreground text-balance">
+  Regístrate para acceder a la plataforma
+</p>
               </div>
 
               <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="name">Nombre completo</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="Tu nombre completo"
-                    required
-                  />
-                </div>
+  <div className="grid gap-3">
+    <Label htmlFor="email">Correo electrónico</Label>
+    <Input
+      id="email"
+      name="email"
+      type="email"
+      placeholder="tucorreo@email.com"
+      required
+    />
+  </div>
 
-                <div className="grid gap-3">
-                  <Label htmlFor="username">Nombre de usuario</Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    placeholder="tu_usuario"
-                    required
-                  />
-                </div>
+  <div className="grid gap-3">
+    <Label htmlFor="username">Nombre de usuario</Label>
+    <Input
+      id="username"
+      name="username"
+      type="text"
+      placeholder="tu_usuario"
+      required
+    />
+  </div>
 
-                <div className="grid gap-3">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
+  <div className="grid gap-3">
+  <Label htmlFor="password">Contraseña</Label>
+  <Input
+    id="password"
+    name="password"
+    type="password"
+    placeholder="Mínimo 6 caracteres"
+    required
+    minLength={6}
+    value={password}
+    onChange={e => setPassword(e.target.value)}
+  />
+</div>
+<div className="grid gap-3">
+  <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+  <Input
+    id="confirmPassword"
+    name="confirmPassword"
+    type="password"
+    placeholder="Repite la contraseña"
+    required
+    value={confirmPassword}
+    onChange={e => setConfirmPassword(e.target.value)}
+  />
+  {passwordError && (
+    <span className="text-red-500 text-xs mt-1">{passwordError}</span>
+  )}
+</div>
+</div>
 
               <Button
                 type="submit"
@@ -115,12 +142,9 @@ export function RegisterForm({
               </div>
             </div>
           </form>
-          <div className="bg-muted relative hidden md:block">
-            <img
-              src="/img/cellphoneLogin.png"
-              alt="Registro TodoFundas"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
+          <div className="bg-muted relative hidden md:flex flex-col items-center justify-center p-8 gap-4">
+            <img className="w-35 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" />
+            <img className="w-22 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" />
           </div>
         </CardContent>
       </Card>

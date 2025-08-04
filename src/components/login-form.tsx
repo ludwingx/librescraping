@@ -10,8 +10,6 @@ import { toast } from "sonner"
 import { useActionState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Package } from "lucide-react"
-import { ModeToggle } from "@/components/mode-toggle"
 
 export function LoginForm({
   className,
@@ -36,14 +34,10 @@ export function LoginForm({
           <form action={formAction} className="p-6 md:p-8">
             <div className="flex flex-col gap-8">
               <div className="flex flex-col items-center text-center">
-                <div className="flex items-center mb-4">
-                  <Package className="h-8 w-8 text-primary mr-2" />
-                  <h1 className="text-2xl font-bold">TodoFundas</h1>
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Bienvenido de nuevo</h2>
-                <p className="text-muted-foreground text-balance">
-                  Inicia sesión en tu cuenta TodoFundas
-                </p>
+                <div className="flex flex-col items-center mb-4">
+  <h1 className="text-2xl font-bold">Libre Scraping</h1>
+</div>
+<h2 className="text-xl font-semibold mb-2">Inicia sesión</h2>
               </div>
               
               <div className="grid gap-6">
@@ -77,22 +71,11 @@ export function LoginForm({
                 {pending ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </Button>
               
-              <div className="text-center">
-                <Link 
-                  href="/register" 
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  ¿No tienes cuenta? Crear cuenta
-                </Link>
-              </div>
             </div>
           </form>
-          <div className="bg-muted relative hidden md:block">
-            <img
-              src="/img/cellphoneLogin.png"
-              alt="Imagen"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
+          <div className="bg-muted relative hidden md:flex flex-col items-center justify-center p-8 gap-4">
+            <img className="w-35 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" />
+            <img className="w-22 h-10 object-contain" src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" />
           </div>
         </CardContent>
       </Card>

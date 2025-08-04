@@ -49,46 +49,46 @@ const data = {
       url: "/dashboard/santacruz",
       icon: MapPin,
     },
-    {
-      title: "Cochabamba",
-      url: "/dashboard/cochabamba",
-      icon: MapPin,
-    },
-    {
-      title: "La Paz",
-      url: "/dashboard/lapaz",
-      icon: MapPin,
-    },
-    {
-      title: "Oruro",
-      url: "/dashboard/oruro",
-      icon: MapPin,
-    },
-    {
-      title: "Potosí",
-      url: "/dashboard/potosi",
-      icon: MapPin,
-    },
-    {
-      title: "Tarija",
-      url: "/dashboard/tarija",
-      icon: MapPin,
-    },
-    {
-      title: "Chuquisaca",
-      url: "/dashboard/chuquisaca",
-      icon: MapPin,
-    },
-    {
-      title: "Beni",
-      url: "/dashboard/beni",
-      icon: MapPin,
-    },
-    {
-      title: "Pando",
-      url: "/dashboard/pando",
-      icon: MapPin,
-    }
+    // {
+    //   title: "Cochabamba",
+    //   url: "/dashboard/cochabamba",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "La Paz",
+    //   url: "/dashboard/lapaz",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Oruro",
+    //   url: "/dashboard/oruro",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Potosí",
+    //   url: "/dashboard/potosi",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Tarija",
+    //   url: "/dashboard/tarija",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Chuquisaca",
+    //   url: "/dashboard/chuquisaca",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Beni",
+    //   url: "/dashboard/beni",
+    //   icon: MapPin,
+    // },
+    // {
+    //   title: "Pando",
+    //   url: "/dashboard/pando",
+    //   icon: MapPin,
+    // }
   ]
 }
 

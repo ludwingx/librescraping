@@ -21,7 +21,6 @@ export async function loginAction(formData: FormData) {
     const user = await prisma.user.findUnique({
       where: { 
         username: username,
-        isActive: true 
       }
     })
 
@@ -39,15 +38,13 @@ export async function loginAction(formData: FormData) {
     // Actualizar último login
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() }
+      data: {}
     })
 
     // Crear JWT token
     const token = await new SignJWT({ 
       userId: user.id, 
       username: user.username,
-      name: user.name,
-      role: user.role 
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -100,47 +97,49 @@ export async function getSession() {
 }
 
 export async function createUserAction(formData: FormData) {
-  const username = formData.get('username') as string
-  const password = formData.get('password') as string
-  const name = formData.get('name') as string
+  const email = formData.get('email') as string;
+  const username = formData.get('username') as string;
+  const password = formData.get('password') as string;
 
-  if (!username || !password || !name) {
-    return { error: 'Todos los campos son requeridos' }
+  if (!email || !username || !password) {
+    return { error: 'Todos los campos son requeridos' };
   }
   if (password.length < 6) {
-    return { error: 'La contraseña debe tener al menos 6 caracteres' }
+    return { error: 'La contraseña debe tener al menos 6 caracteres' };
   }
 
   try {
-    // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findUnique({
-      where: { username }
-    })
-
-    if (existingUser) {
-      return { error: 'El usuario ya existe' }
+    // Validar unicidad de email
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail) {
+      return { error: 'El correo electrónico ya está en uso' };
     }
-
+    // Validar unicidad de username
+    const existingUser = await prisma.user.findUnique({ where: { username } });
+    if (existingUser) {
+      return { error: 'El nombre de usuario ya está en uso' };
+    }
     // Hash de la contraseña
-    const hashedPassword = await bcrypt.hash(password, 12)
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     // Crear usuario
     const user = await prisma.user.create({
       data: {
+        email,
         username,
         password: hashedPassword,
-        name,
-        role: 'user'
-      }
-    })
-
-    return { success: true, userId: user.id }
+      },
+    });
+    return { success: true, userId: user.id };
   } catch (error: any) {
-    console.error('Error creando usuario:', error)
-    // Si es un error de Prisma por restricción única
-    if (error.code === 'P2002' && error.meta?.target?.includes('username')) {
-      return { error: 'El nombre de usuario ya está en uso' }
+    console.error('Error creando usuario:', error);
+    if (error.code === 'P2002') {
+      if (error.meta?.target?.includes('email')) {
+        return { error: 'El correo electrónico ya está en uso' };
+      }
+      if (error.meta?.target?.includes('username')) {
+        return { error: 'El nombre de usuario ya está en uso' };
+      }
     }
-    return { error: 'Error interno del servidor: ' + (error.message || error.toString()) }
+    return { error: 'Error interno del servidor: ' + (error.message || error.toString()) };
   }
 }

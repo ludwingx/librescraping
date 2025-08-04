@@ -7,8 +7,15 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-// POSTID	PERFIL	NOMBREPAGINA	PERFILURL	POSTURL	TEXTO	HASHTAGS	FECHAPUBLICACION	LIKES	COMENTARIOS	COMPARTIDOS	IMG	FOTOPERFIL	REDSOCIAL
-model face_scrap {
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+}
+
+model scrap_post {
   id Int @id @default(autoincrement())
   postid String
   perfil String
@@ -21,52 +28,19 @@ model face_scrap {
   likes Int
   comentarios Int
   compartidos Int
+  vistas Int?
   img String
   fotoperfil String
   redsocial String
   departamento String
   titularidad String
+  created_at DateTime @default(now())
 }
-
-model insta_scrap {
+model sin_publicacion{
   id Int @id @default(autoincrement())
-  postid String 
-  perfil String
-  nombrepagina String
-  perfilurl String
-  posturl String
-  texto String
-  hashtags String
-  fechapublicacion String
-  likes Int
-  comentarios Int
-  compartidos Int
-  img String
-  fotoperfil String
   redsocial String
   departamento String
   titularidad String
+  fecha_scrap DateTime @default(now())
+  candidato String
 }
-
-model tiktok_scrap {
-  id Int @id @default(autoincrement())
-  postid String 
-  perfil String
-  nombrepagina String
-  perfilurl String
-  posturl String
-  texto String
-  hashtags String
-  fechapublicacion String
-  likes Int
-  comentarios Int
-  compartidos Int
-  img String
-  fotoperfil String
-  redsocial String
-  departamento String
-  titularidad String
-  vistas Int
-}
-
-

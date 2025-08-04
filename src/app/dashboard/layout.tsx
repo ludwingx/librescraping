@@ -31,25 +31,35 @@ import { Toaster } from "sonner";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 
-export default function DashboardLayout({
+import { getSession } from "@/app/actions/auth";
+
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+  if (!session) {
+    // Si no hay sesión, redirigir a login
+    // (usar redirect de next/navigation)
+    const { redirect } = await import("next/navigation");
+    redirect("/login");
+    return null;
+  }
+  const user = {
+    name: typeof session.username === "string" ? session.username : "Usuario",
+    email: typeof session.email === "string" ? session.email : "",
+    avatar: "/avatars/default.jpg", // Si tienes avatar en DB, cámbialo aquí
+  };
   return (
-    <html lang="en" suppressHydrationWarning>
-    <head />
-    <body>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            {children}
-          </SidebarInset>
+        <AppSidebar user={user} />
+        <SidebarInset>
+          {children}
+        </SidebarInset>
       </SidebarProvider>
-        <Toaster position="bottom-right" richColors />
-      </ThemeProvider>
-    </body>
-  </html>
+      <Toaster position="bottom-right" richColors />
+    </ThemeProvider>
   );
 }

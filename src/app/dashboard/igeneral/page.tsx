@@ -7,17 +7,20 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 
 export default async function Page() {
   // Consultas a cada red social
-  const facebookPosts = (await prisma.face_scrap.findMany({
+  const facebookPosts = (await prisma.scrap_post.findMany({
+    where: { redsocial: "Facebook" },
     orderBy: { fechapublicacion: "desc" },
     take: 40,
   })).map(post => ({ ...post, redsocial: "Facebook" }));
 
-  const instagramPosts = (await prisma.insta_scrap.findMany({
+  const instagramPosts = (await prisma.scrap_post.findMany({
+    where: { redsocial: "Instagram" },
     orderBy: { fechapublicacion: "desc" },
     take: 40,
   })).map(post => ({ ...post, redsocial: "Instagram" }));
 
-  const tiktokPosts = (await prisma.tiktok_scrap.findMany({
+  const tiktokPosts = (await prisma.scrap_post.findMany({
+    where: { redsocial: "TikTok" },
     orderBy: { fechapublicacion: "desc" },
     take: 40,
   })).map(post => ({ ...post, redsocial: "TikTok" }));
