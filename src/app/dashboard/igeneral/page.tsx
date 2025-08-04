@@ -5,6 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 
+interface PostGeneral {
+  postid: string;
+  nombrepagina: string;
+  texto: string;
+  posturl: string;
+  titularidad?: string;
+  departamento?: string;
+  likes?: number;
+  comentarios?: number;
+  compartidos?: number;
+  img?: string;
+  fotoperfil?: string;
+  perfilurl?: string;
+  fechapublicacion?: string;
+  redsocial?: string;
+}
+
 export default async function Page() {
   // Consultas a cada red social
   const facebookPosts = (await prisma.scrap_post.findMany({
@@ -194,7 +211,7 @@ export default async function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {facebookPosts.map((post: any, idx: number) => (
+                  {facebookPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`facebook-${post.postid}-Facebook-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
                         <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
@@ -252,7 +269,7 @@ export default async function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {instagramPosts.map((post: any, idx: number) => (
+                  {instagramPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`instagram-${post.postid}-Instagram-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
                         <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
@@ -310,7 +327,7 @@ export default async function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tiktokPosts.map((post: any, idx: number) => (
+                  {tiktokPosts.map((post: PostGeneral, idx: number) => (
                     <tr key={`tiktok-${post.postid}-TikTok-${idx}`} className="bg-white border-b">
                       <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
                         <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
