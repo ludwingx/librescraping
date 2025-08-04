@@ -39,11 +39,11 @@ const data = {
       icon: BarChart3,
       isActive: true,
     },
-    {
-      title: "Informe General",
-      url: "/dashboard/igeneral",
-      icon: TrendingUp,
-    },
+    // {
+    //   title: "Informe General",
+    //   url: "/dashboard/igeneral",
+    //   icon: TrendingUp,
+    // },
     {
       title: "Santa Cruz",
       url: "/dashboard/santacruz",

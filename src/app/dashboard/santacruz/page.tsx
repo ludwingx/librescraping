@@ -122,7 +122,7 @@ export default async function Page() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {postsPorTitularidad[tit].map((post: any) => (
+                      {postsPorTitularidad[tit].map((post: { [key: string]: any }) => (
                         <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
                           <TableCell className="px-2 py-2 text-center">
                             <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />

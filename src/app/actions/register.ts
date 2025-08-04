@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 
 // Zod schema para validación del registro
 export const registerSchema = z.object({
+  email: z.string().email("Por favor, ingresa un correo electrónico válido"),
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres").max(32),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(64),
 });
@@ -22,11 +23,11 @@ export async function registerUser(input: RegisterInput) {
 
   try {
     // Verificar unicidad del username
-    const existing = await prisma.user.findUnique({ where: { username: input.username } });
+    const existing = await prisma.user.findUnique({ where: { email: input.email } });
     if (existing) {
       return {
         success: false,
-        error: { username: ["El usuario ya existe"] },
+        error: { email: ["El correo electrónico ya existe"] },
       };
     }
 
@@ -36,11 +37,9 @@ export async function registerUser(input: RegisterInput) {
     // Crear usuario
     const user = await prisma.user.create({
       data: {
-        name: input.username,
+        email: input.email,
         username: input.username,
         password: hashedPassword,
-        role: 'user',
-        isActive: true,
       },
     });
 
@@ -48,10 +47,10 @@ export async function registerUser(input: RegisterInput) {
       success: true,
       user: { id: user.id, username: user.username },
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       success: false,
-      error: { general: ["Error inesperado: " + (err.message || "")] },
+      error: { general: ["Error inesperado: " + err] },
     };
   }
 }

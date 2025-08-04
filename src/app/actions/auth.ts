@@ -130,16 +130,20 @@ export async function createUserAction(formData: FormData) {
       },
     });
     return { success: true, userId: user.id };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creando usuario:', error);
-    if (error.code === 'P2002') {
-      if (error.meta?.target?.includes('email')) {
-        return { error: 'El correo electrónico ya está en uso' };
+    if (typeof error === 'object' && error !== null) {
+      // Prisma error
+      if ('code' in error && error.code === 'P2002') {
+        if ('meta' in error && (error as any).meta?.target?.includes('email')) {
+          return { error: 'El correo electrónico ya está en uso' };
+        }
+        if ('meta' in error && (error as any).meta?.target?.includes('username')) {
+          return { error: 'El nombre de usuario ya está en uso' };
+        }
       }
-      if (error.meta?.target?.includes('username')) {
-        return { error: 'El nombre de usuario ya está en uso' };
-      }
+      return { error: 'Error interno del servidor: ' + ((error as any).message || error.toString()) };
     }
-    return { error: 'Error interno del servidor: ' + (error.message || error.toString()) };
+    return { error: 'Error interno del servidor: ' + String(error) };
   }
 }

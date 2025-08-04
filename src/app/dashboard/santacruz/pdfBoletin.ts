@@ -180,7 +180,7 @@ export async function generarBoletinPDF({
     doc.line(18, y, 190, y);
     y += 3;
     // Filas
-    sinActividadSantaCruz.forEach((item: any) => {
+    sinActividadSantaCruz.forEach((item: { candidato: string; titularidad: string; redsocial: string; }) => {
       // Recortar cada campo si es necesario
       function crop(text: string, maxLen: number) {
         return text.length > maxLen ? text.slice(0, maxLen - 3) + '...' : text;

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const key = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
 
-export async function encrypt(payload: any) {
+export async function encrypt(payload: Record<string, unknown>) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -12,7 +12,7 @@ export async function encrypt(payload: any) {
     .sign(key)
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<Record<string, unknown>> {
   const { payload } = await jwtVerify(input, key, {
     algorithms: ['HS256'],
   })
@@ -47,18 +47,17 @@ export async function getSession() {
 }
 
 export async function updateSession(request: NextRequest) {
-  const session = request.cookies.get('session')?.value
-  if (!session) return
+  const session = request.cookies.get('session')?.value;
+  if (!session) return NextResponse.next();
 
   // Refresh the session so it doesn't expire
-  const parsed = await decrypt(session)
-  parsed.expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const res = NextResponse.next()
-  res.cookies.set({
-    name: 'session',
-    value: await encrypt(parsed),
+  const parsed = await decrypt(session);
+  parsed.expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const res = NextResponse.next();
+  res.cookies.set('session', await encrypt(parsed), {
     httpOnly: true,
-    expires: parsed.expires,
-  })
-  return res
+    expires: parsed.expires as Date,
+    path: '/',
+  });
+  return res;
 }
