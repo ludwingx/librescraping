@@ -15,6 +15,23 @@ import { BoletinDownloader } from "./BoletinDownloader";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import prisma from "@/lib/prisma";
 
+interface PostGeneral {
+  id: number;
+  nombrepagina: string;
+  texto: string;
+  posturl: string;
+  titularidad?: string;
+  departamento?: string;
+  likes?: number;
+  comentarios?: number;
+  compartidos?: number;
+  img?: string;
+  fotoperfil?: string;
+  perfilurl?: string;
+  fechapublicacion?: string;
+  redsocial?: string;
+}
+
 export default async function Page() {
   // Obtener todos los posts de Santa Cruz
   const allPosts = await prisma.scrap_post.findMany({
@@ -122,7 +139,7 @@ export default async function Page() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {postsPorTitularidad[tit].map((post: { [key: string]: any }) => (
+                      {postsPorTitularidad[tit].map((post: PostGeneral) => (
                         <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
                           <TableCell className="px-2 py-2 text-center">
                             <img src={post.fotoperfil} alt={post.nombrepagina} className="w-10 h-10 rounded-full mx-auto" />
