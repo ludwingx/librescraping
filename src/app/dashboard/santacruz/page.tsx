@@ -119,7 +119,7 @@ export default async function Page() {
                   <Table className="min-w-[1500px] border border-gray-200 rounded-lg bg-white text-sm">
                     <TableHeader>
                       <TableRow className="bg-gray-100">
-                        <TableHead className="px-2 py-2 w-14 text-center">Foto</TableHead>
+                        
                         <TableHead className="px-1 py-2 min-w-[30px]">Nombre</TableHead>
                         <TableHead className="px-2 py-2 min-w-[200px]">Texto</TableHead>
                         <TableHead className="px-2 py-2 w-24">Titularidad</TableHead>
@@ -127,7 +127,7 @@ export default async function Page() {
                         <TableHead className="px-2 py-2 w-20 text-center">&quot;Me gusta&quot;</TableHead>
                         <TableHead className="px-2 py-2 w-20 text-center">&quot;Comentarios&quot;</TableHead>
                         <TableHead className="px-2 py-2 w-20 text-center">&quot;Compartidos&quot;</TableHead>
-                        <TableHead className="px-2 py-2 w-14 text-center">Miniatura</TableHead>
+                        
                         <TableHead className="px-2 py-2 w-24">Red Social</TableHead>
                         <TableHead className="px-2 py-2 w-28">Fecha y hora</TableHead>
                         <TableHead className="px-1 py-2 w-20 text-center">Ver post</TableHead>
@@ -136,9 +136,7 @@ export default async function Page() {
                     <TableBody>
                       {postsPorTitularidad[tit].map((post: PostGeneral) => (
                         <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
-                          <TableCell className="px-2 py-2 text-center">
-                            <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                          </TableCell>
+                          
                           <TableCell className="px-1 py-2 max-w-[120px] truncate">
                             <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
                             <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
@@ -149,9 +147,7 @@ export default async function Page() {
                           <TableCell className="px-2 py-2 text-center">{post.likes}</TableCell>
                           <TableCell className="px-2 py-2 text-center">{post.comentarios}</TableCell>
                           <TableCell className="px-2 py-2 text-center">{post.compartidos}</TableCell>
-                          <TableCell className="px-2 py-2 text-center">
-                            <Image src={post.img || '/default-image.png'} alt={post.nombrepagina} width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                          </TableCell>
+                          
                           <TableCell className="px-2 py-2">{post.redsocial}</TableCell>
                           <TableCell className="px-2 py-2">{post.fechapublicacion}</TableCell>
                           <TableCell className="px-1 py-2 text-center">
