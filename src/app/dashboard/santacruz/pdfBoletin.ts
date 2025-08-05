@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 
 interface Post {
-  nombrepagina: string;
+  perfil: string;
   texto: string;
   posturl: string;
   titularidad: string;
@@ -52,7 +52,7 @@ export async function generarBoletinPDF({
   if (postsPresidente.length > 0) {
     postsPresidente.forEach(post => {
       doc.setFontSize(12);
-      doc.text("Perfil: " + post.nombrepagina + " | Red social: " + (post.redsocial || ""), 20, y);
+      doc.text("Perfil: " + post.perfil + " | Red social: " + (post.redsocial || ""), 20, y);
       y += 6;
       doc.text("Texto: " + (post.texto?.slice(0, 90) || ""), 20, y);
       y += 6;
@@ -77,7 +77,7 @@ export async function generarBoletinPDF({
   if (postsVice.length > 0) {
     postsVice.forEach(post => {
       doc.setFontSize(12);
-      doc.text("Perfil: " + post.nombrepagina + " | Red social: " + (post.redsocial || ""), 20, y);
+      doc.text("Perfil: " + post.perfil + " | Red social: " + (post.redsocial || ""), 20, y);
       y += 6;
       doc.text("Texto: " + (post.texto?.slice(0, 90) || ""), 20, y);
       y += 6;
@@ -106,7 +106,7 @@ export async function generarBoletinPDF({
     if (postsTit.length > 0) {
       postsTit.forEach(post => {
         doc.setFontSize(12);
-        doc.text("Perfil: " + post.nombrepagina + " | Red social: " + (post.redsocial || ""), 25, y);
+        doc.text("Perfil: " + post.perfil + " | Red social: " + (post.redsocial || ""), 25, y);
         y += 6;
         // Ajustar texto de la publicación al ancho de la hoja
         let texto = post.texto || "";
