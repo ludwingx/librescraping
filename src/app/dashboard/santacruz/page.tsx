@@ -13,6 +13,7 @@ import Image from 'next/image';
 
 interface PostGeneral {
   id: number;
+  perfil: string;
   nombrepagina: string;
   texto: string;
   posturl: string;
@@ -26,20 +27,50 @@ interface PostGeneral {
   perfilurl?: string;
   fechapublicacion?: string;
   redsocial?: string;
+  created_at?: string;
 }
 
 export default async function Page() {
-  // Obtener todos los posts de Santa Cruz
+  // Calcular rango de fechas para hoy
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  // Obtener todos los posts de Santa Cruz SOLO de hoy
   const allPosts = await prisma.scrap_post.findMany({
     where: {
       departamento: {
         equals: "SANTA CRUZ",
         mode: "insensitive"
+      },
+      created_at: {
+        gte: today,
+        lt: tomorrow
       }
     },
-    orderBy: { fechapublicacion: "desc" },
+    orderBy: { created_at: "desc" },
     take: 300,
   });
+
+  // Obtener posts nacionales PRESIDENTE y VICEPRESIDENTE SOLO de hoy
+  const postsNacionales = await prisma.scrap_post.findMany({
+    where: {
+      departamento: {
+        equals: "PAIS",
+        mode: "insensitive"
+      },
+      titularidad: {
+        in: ["PRESIDENTE", "VICEPRESIDENTE"]
+      },
+      created_at: {
+        gte: today,
+        lt: tomorrow
+      }
+    },
+    orderBy: { created_at: "desc" }
+  });
+
 
   // Obtener lista de sin actividad en RRSS desde la tabla sin_publicacion
   const sinActividadRegistros = await prisma.sin_publicacion.findMany({
@@ -69,9 +100,32 @@ export default async function Page() {
 
   console.log(allPosts);
 
-  const postsPorTitularidad = Object.fromEntries(
-    titularidades.map(tit => [tit, allPosts.filter(p => (p.titularidad || "").toUpperCase() === tit)])
-  );
+  // Mapear los posts para asegurar que fechapublicacion sea string y creada a partir de created_at (Date)
+const mapPostToGeneral = (post: any): PostGeneral => ({
+  ...post,
+  fechapublicacion: post.created_at instanceof Date ? post.created_at.toISOString() : post.created_at,
+});
+
+const allPostsGeneral = allPosts.map(mapPostToGeneral);
+const postsNacionalesGeneral = postsNacionales.map(mapPostToGeneral);
+
+const postsPorTitularidad = Object.fromEntries(
+  titularidades.map(tit => {
+    let posts = allPostsGeneral.filter(p => (p.titularidad || "").toUpperCase() === tit);
+    // Concatenar todos los nacionales si corresponde
+    if (tit === "PRESIDENTE" || tit === "VICEPRESIDENTE") {
+      const nacionales = postsNacionalesGeneral.filter(
+        p => (p.titularidad || "").toUpperCase() === tit
+      );
+      if (nacionales.length > 0) {
+        // Evitar duplicados por id
+        const idsNacionales = new Set(nacionales.map(n => n.id));
+        posts = [...nacionales, ...posts.filter(p => !idsNacionales.has(p.id))];
+      }
+    }
+    return [tit, posts];
+  })
+);
 
   return (
     <>
@@ -138,7 +192,7 @@ export default async function Page() {
                         <TableRow key={post.id} className="odd:bg-white even:bg-gray-50">
                           
                           <TableCell className="px-1 py-2 max-w-[120px] truncate">
-                            <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
+                            <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
                             <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
                           </TableCell>
                           <TableCell className="px-2 py-2 max-w-xs truncate" title={post.texto}>{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</TableCell>

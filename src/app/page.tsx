@@ -10,8 +10,7 @@ export default async function Home() {
           <img className="w-20 h-14 object-contain" src="https://tuto-noticias-test.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" />
         </div>
         <h1 className="text-3xl md:text-5xl font-extrabold text-blue-900 mb-2 tracking-tight text-center">¡Bienvenido a Libre-Scraping!</h1>
-        <h2 className="text-lg md:text-2xl text-blue-700 mb-4 font-semibold text-center">Visualiza y analiza publicaciones públicas de Facebook de manera centralizada y moderna</h2>
-        <p className="mb-8 text-gray-700 text-base md:text-lg leading-relaxed text-center max-w-2xl">Explora tendencias, titulares y estadísticas de perfiles públicos extraídos automáticamente. Accede a dashboards por departamento o consulta el informe general.</p>
+        <h2 className="text-sm md:text-lg text-gray-600 mb-4 font-medium text-center">Visualiza y analiza publicaciones públicas de Facebook, Instagram y TikTok de manera centralizada y moderna</h2>
         <Link href="/dashboard" className="w-full max-w-xs">
           <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg py-6 rounded-xl shadow-md transition-all duration-150">Ver publicaciones</Button>
         </Link>

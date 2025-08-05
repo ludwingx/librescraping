@@ -11,6 +11,8 @@ import {
 import prisma from "@/lib/prisma";
 
 import ExcelDownloaderClient from "@/app/dashboard/ExcelDownloaderClient";
+import { QuickActionCard } from "@/components/ui/quick-action-card";
+import { BarChart3, Download, Users } from "lucide-react";
 
 export default async function Page  () {
   // Obtener resumen de publicaciones por titularidad
@@ -51,7 +53,7 @@ export default async function Page  () {
   });
   console.log(posts);
   return (
-    <>
+    <> 
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <div className="flex items-center w-full gap-2 px-4">
           <div className="flex items-center gap-2 flex-grow min-w-0">
@@ -71,64 +73,79 @@ export default async function Page  () {
           </div>
         </div>
       </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="container mx-auto py-8">
-            <div className="flex flex-col items-center justify-center min-h-[300px] w-full">
-              <h2 className="text-3xl font-extrabold mb-2 text-blue-700">Dashboard</h2>
-              <p className="text-muted-foreground text-base mb-6">Bienvenido al dashboard de Libre Scraping.</p>
+      <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="container mx-auto py-8">
+          <div className="flex flex-col items-center justify-center min-h-[300px] w-full">
+            <h2 className="text-4xl font-extrabold mb-2 text-blue-800 tracking-tight">Dashboard</h2>
+            <p className="text-muted-foreground text-lg mb-8">Visualiza estadísticas y accede rápidamente a los reportes de Libre Scraping.</p>
 
-              <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl justify-center">
-                {/* Resumen de publicaciones */}
-                <div className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-100">
-                  <h3 className="text-lg font-semibold mb-4 text-blue-800 flex items-center gap-2">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8 17l4 4 4-4m-4-5v9"/><path d="M20 12a8 8 0 10-16 0 8 8 0 0016 0z"/></svg>
-                    Publicaciones por titularidad
-                  </h3>
-                  <ul className="divide-y divide-blue-100">
-                    {resumen.map((item) => (
-                      <li key={item.titularidad} className="flex justify-between px-2 py-2 text-blue-900">
-                        <span className="font-medium">{item.titularidad || 'Sin titularidad'}</span>
-                        <span className="font-bold text-lg">{item._count._all}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                {/* Sin publicaciones */}
-                <div className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-6 border border-gray-200">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
-                    Sin publicaciones por titularidad
-                  </h3>
-                  <ul className="divide-y divide-gray-200">
-                    {sinPublicacion.map((item) => (
-                      <li key={item.titularidad} className="flex justify-between px-2 py-2 text-gray-900">
-                        <span className="font-medium">{item.titularidad || 'Sin titularidad'}</span>
-                        <span className="font-bold text-lg">{item._count._all}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            {/* Bloques de navegación grandes */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-10">
+              <QuickActionCard
+                title="Santa Cruz"
+                icon={BarChart3}
+                href="/dashboard/santacruz"
+                variant="outline"
+                className="text-blue-800 border-blue-300 hover:bg-blue-50"
+              />
+              <QuickActionCard
+                title="General RRSS"
+                icon={Users}
+                href="/dashboard/igeneral"
+                variant="outline"
+                className="text-green-800 border-green-300 hover:bg-green-50"
+              />
+              <QuickActionCard
+                title="Descargar Excel"
+                icon={Download}
+                href="#descarga"
+                variant="outline"
+                className="text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+              />
+            </div>
+
+            {/* Estadísticas principales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mb-10">
+              {/* Publicaciones por titularidad */}
+              <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100 flex flex-col items-center">
+                <h3 className="text-lg font-bold mb-4 text-blue-700 flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-blue-400" /> Publicaciones por titularidad
+                </h3>
+                <ul className="divide-y divide-blue-50 w-full">
+                  {resumen.map((item) => (
+                    <li key={item.titularidad} className="flex justify-between px-2 py-2 text-blue-900">
+                      <span className="font-medium">{item.titularidad || 'Sin titularidad'}</span>
+                      <span className="font-bold text-xl">{item._count._all}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              {/* Navegación rápida */}
-              <div className="flex flex-wrap gap-4 mt-10 justify-center w-full max-w-4xl">
-                <a href="/dashboard/santacruz" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition-all duration-150 flex items-center gap-2">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
-                  Publicaciones de Santa Cruz
-                </a>
-                <a href="/dashboard/igeneral" className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition-all duration-150 flex items-center gap-2">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8m-4-4v8"/></svg>
-                  General RRSS
-                </a>
+              {/* Sin publicaciones por titularidad */}
+              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 flex flex-col items-center">
+                <h3 className="text-lg font-bold mb-4 text-gray-700 flex items-center gap-2">
+                  <Users className="w-6 h-6 text-gray-400" /> Sin publicaciones por titularidad
+                </h3>
+                <ul className="divide-y divide-gray-50 w-full">
+                  {sinPublicacion.map((item) => (
+                    <li key={item.titularidad} className="flex justify-between px-2 py-2 text-gray-900">
+                      <span className="font-medium">{item.titularidad || 'Sin titularidad'}</span>
+                      <span className="font-bold text-xl">{item._count._all}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+            </div>
 
-              {/* Descarga Excel */}
-              {/* El botón de descarga se mueve a un Client Component separado */}
+            {/* Descarga Excel */}
+            <div id="descarga" className="w-full max-w-3xl mt-6">
+              <h3 className="text-lg font-bold mb-4 text-blue-700 flex items-center gap-2">
+                Descargar Excel
+              </h3>
               <ExcelDownloaderClient />
             </div>
           </div>
         </div>
-    
-     </>
+      </main>
+    </>
   )
 }

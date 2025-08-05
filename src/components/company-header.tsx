@@ -12,7 +12,7 @@ export function CompanyHeader({
 }: {
   company: {
     name: string
-    logo: React.ElementType
+    logo: string | React.ElementType
     plan: string
   }
 }) {
@@ -25,7 +25,13 @@ export function CompanyHeader({
       <SidebarMenuItem>
         <SidebarMenuButton size="lg" className="cursor-default">
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <company.logo className="size-4" />
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+            {typeof company.logo === "string" ? (
+              <img src={company.logo} alt={company.name + " logo"} className="size-6" />
+            ) : (
+              <company.logo className="size-4" />
+            )}
+          </div>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{company.name}</span>

@@ -29,7 +29,7 @@ const data = {
   },
   company: {
     name: "Libre Scraping",
-    logo: ScrollText,
+    logo: "/logoLibrescraping.svg",
     plan: "Sistema de visualización de datos de redes sociales",
   },
   navMain: [
@@ -96,7 +96,11 @@ export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sideb
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <CompanyHeader company={data.company} />
+        <CompanyHeader company={{
+          ...data.company,
+          // Permitir logo como string o componente
+          logo: data.company.logo,
+        }} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

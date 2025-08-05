@@ -1,4 +1,5 @@
 "use client";
+import { Download } from "lucide-react";
 import React, { useState } from "react";
 
 const ciudades = [
@@ -51,7 +52,12 @@ export default function ExcelDownloader() {
   };
 
   return (
+    
     <div className="bg-white rounded-xl shadow p-4 flex flex-col md:flex-row items-center gap-4 mt-8 w-full max-w-4xl mx-auto">
+      
+      
+      
+      
       <div className="flex flex-col gap-2 w-full md:w-auto">
         <label className="text-sm font-medium">Fecha</label>
         <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} className="border rounded px-2 py-1" />
@@ -73,9 +79,9 @@ export default function ExcelDownloader() {
       <button
         onClick={handleDownload}
         disabled={descargando}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition-all duration-150 mt-4 md:mt-0"
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition-all duration-150 mt-4 md:mt-0"
       >
-        {descargando ? "Descargando..." : "Descargar Excel"}
+        {descargando ? "Descargando..." : "Descargar Excel"} <Download />
       </button>
     </div>
   );
