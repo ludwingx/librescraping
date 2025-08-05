@@ -48,7 +48,7 @@ export async function generarBoletinPDF({
   doc.setFontSize(16);
   doc.text("Publicaciones de Presidente: Jorge Tuto Quiroga", 15, y);
   y += 8;
-  const postsPresidente = posts.filter(p => p.nombrepagina.toLowerCase().includes("jorge tuto quiroga"));
+  const postsPresidente = posts.filter(p => p.perfil.toLowerCase().includes("jorge tuto quiroga"));
   if (postsPresidente.length > 0) {
     postsPresidente.forEach(post => {
       doc.setFontSize(12);
@@ -73,7 +73,7 @@ export async function generarBoletinPDF({
   doc.setFontSize(16);
   doc.text("Publicaciones de Vicepresidente: Juan Pablo Velazco", 15, y);
   y += 8;
-  const postsVice = posts.filter(p => p.nombrepagina.toLowerCase().includes("juan pablo velazco") || p.nombrepagina.toLowerCase().includes("juan pablo velasco"));
+  const postsVice = posts.filter(p => p.perfil.toLowerCase().includes("juan pablo velazco") || p.perfil.toLowerCase().includes("juan pablo velasco"));
   if (postsVice.length > 0) {
     postsVice.forEach(post => {
       doc.setFontSize(12);
