@@ -15,7 +15,7 @@ export async function generarBoletinPDF({
   titularidades = [],
   sinActividad = [],
   fechaHoy,
-  logoUrl = "/logos/LibreLogo.png" // Cambia aquí la URL de tu logo
+  logoUrl = "/logos/librePDF.png" // Cambia aquí la URL de tu logo
 }: {
   posts: Post[];
   titularesDestacados?: string[];
@@ -30,19 +30,33 @@ export async function generarBoletinPDF({
   logoUrl?: string;
 }) {
   const doc = new jsPDF();
-  let y = 20;
+  let y = 8;
 
   // Cabecera
   // Convertir logoUrl a base64 y mostrar el logo centrado
   const logoBase64 = await urlToBase64(logoUrl);
   if (logoBase64) {
-    doc.addImage(logoBase64, 'PNG', 80, y, 50, 15); // x, y, width, height
-    y += 22;
+    // Imagen ocupa todo el ancho del PDF (A4: 210mm)
+    doc.addImage(logoBase64, 'PNG', 0, 0, 210, 30); // x=0, y=0, width=210mm, height=30mm
+    y = 34; // deja un pequeño margen debajo del logo
+  } else {
+    y = 20;
   }
 
+  // Fondo azul para el título
+  doc.setFillColor(0, 70, 140); // azul oscuro
+  doc.rect(0, y - 5, 210, 10, 'F'); // x, y, width=210mm, height=12mm
+
+  // Texto blanco y negrita
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
-  doc.text(`BOLETIN ${fechaHoy} DE REDES SOCIALES`, 105, y, { align: "center" });
-  y += 15;
+  doc.text(`BOLETIN ${fechaHoy} DE REDES SOCIALES`, 105, y + 1, { align: "center" });
+  y += 13;
+
+  // volver a texto normal
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
 
   // Publicaciones de Presidente
   doc.setFontSize(16);
