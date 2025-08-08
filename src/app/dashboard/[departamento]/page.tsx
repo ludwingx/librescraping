@@ -18,7 +18,6 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import Image from "next/image";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface PostGeneral {
@@ -73,17 +72,16 @@ export default function DepartamentoPage() {
     const fetchData = async () => {
       setLoading(true);
       const departamentoApi = decodeURIComponent(departamento as string)
-        .toLowerCase()
+        .toUpperCase()
         .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
-        .replace(/\s+/g, "");
+        .replace(/\p{Diacritic}/gu, "");
       console.log("Desde:", desde, "Hasta:", hasta, "API:", departamentoApi);
       try {
         const res = await fetch(
-          `/api/${departamentoApi}-posts?desde=${desde}&hasta=${hasta}`
+          `/api/posts?departamento=${departamentoApi}&desde=${desde}&hasta=${hasta}`
         );
         const data = await res.json();
-        console.log("Datos recibidos:", data);
+        console.log("Datos recibidos:", JSON.stringify(data, null, 2));
         setAllPosts(
           (data.allPosts || []).map((p: any) => ({
             ...p,

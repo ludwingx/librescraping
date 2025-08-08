@@ -28,15 +28,13 @@ export default async function Page() {
   tomorrow.setDate(today.getDate() + 1);
 
   // Obtener cantidad de los que no han publicado por titularidad
-  const sinPublicacion = await prisma.sin_publicacion.groupBy({
-    by: ["titularidad"],
+  const totalSinPublicar = await prisma.sin_publicacion.count({
     where: {
       fecha_scrap: {
         gte: today,
         lt: tomorrow,
       },
     },
-    _count: { _all: true },
   });
 
   const posts = (
@@ -119,10 +117,7 @@ export default async function Page() {
                 </CardHeader>
                 <CardContent>
                   <span className="text-4xl font-bold text-red-700">
-                    {sinPublicacion.reduce(
-                      (acc, curr) => acc + curr._count._all,
-                      0
-                    )}
+                    {totalSinPublicar}
                   </span>
                 </CardContent>
               </Card>
