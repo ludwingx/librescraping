@@ -27,18 +27,6 @@ export default async function Page() {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  // Resumen de publicaciones por titularidad solo para hoy
-  const resumen = await prisma.scrap_post.groupBy({
-    by: ["titularidad"],
-    where: {
-      created_at: {
-        gte: today,
-        lt: tomorrow,
-      },
-    },
-    _count: { _all: true },
-  });
-
   // Obtener cantidad de los que no han publicado por titularidad
   const sinPublicacion = await prisma.sin_publicacion.groupBy({
     by: ["titularidad"],
@@ -115,7 +103,7 @@ export default async function Page() {
                 </CardHeader>
                 <CardContent>
                   <span className="text-4xl font-bold text-blue-700">
-                    {resumen.reduce((acc, curr) => acc + curr._count._all, 0)}
+                    {posts.length}
                   </span>
                 </CardContent>
               </Card>
@@ -136,34 +124,6 @@ export default async function Page() {
                       0
                     )}
                   </span>
-                </CardContent>
-              </Card>
-              {/* Top 3 titulares */}
-              <Card className="border-blue-200 shadow-md bg-white">
-                <CardHeader>
-                  <CardTitle className="text-blue-700 flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-blue-500" /> Top
-                    titulares
-                  </CardTitle>
-                  <CardDescription>Más publicaciones hoy</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ol className="list-decimal pl-4">
-                    {resumen
-                      .sort((a, b) => b._count._all - a._count._all)
-                      .slice(0, 3)
-                      .map((item, idx) => (
-                        <li
-                          key={item.titularidad}
-                          className="text-base text-blue-900"
-                        >
-                          <span className="font-semibold">
-                            {item.titularidad || "Sin titularidad"}
-                          </span>
-                          : {item._count._all}
-                        </li>
-                      ))}
-                  </ol>
                 </CardContent>
               </Card>
             </div>
