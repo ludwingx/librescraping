@@ -44,52 +44,22 @@ const data = {
     //   url: "/dashboard/igeneral",
     //   icon: TrendingUp,
     // },
-    {
-      title: "Santa Cruz",
-      url: "/dashboard/santacruz",
+    ...[
+      "Santa Cruz",
+      "La Paz",
+      "Cochabamba",
+      "Oruro",
+      "Potosí",
+      "Tarija",
+      "Chuquisaca",
+      "Beni",
+      "Pando"
+    ].map(dep => ({
+      title: dep,
+      url: `/dashboard/${dep.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')}`,
       icon: MapPin,
-    },
-    // {
-    //   title: "Cochabamba",
-    //   url: "/dashboard/cochabamba",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "La Paz",
-    //   url: "/dashboard/lapaz",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Oruro",
-    //   url: "/dashboard/oruro",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Potosí",
-    //   url: "/dashboard/potosi",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Tarija",
-    //   url: "/dashboard/tarija",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Chuquisaca",
-    //   url: "/dashboard/chuquisaca",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Beni",
-    //   url: "/dashboard/beni",
-    //   icon: MapPin,
-    // },
-    // {
-    //   title: "Pando",
-    //   url: "/dashboard/pando",
-    //   icon: MapPin,
-    // }
-  ]
+    }))
+  ],
 }
 
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user?: { name: string; email: string; avatar: string } }) {

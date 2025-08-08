@@ -1,15 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { generarBoletinPDF } from "./pdfBoletin";
+import { generarBoletinPDF } from "@/utils/pdfBoletin";
 import React from "react";
 
-interface Post {
-  nombrepagina: string;
-  texto: string;
-  posturl: string;
-  titularidad: string;
-  fechapublicacion: string;
-}
+import type { Post } from "@/types/Post";
 
 interface SinActividadItem {
   candidato: string;
@@ -18,9 +12,20 @@ interface SinActividadItem {
   redsocial: string;
 }
 
-export function BoletinDownloader({ posts, titularidades, sinActividad = [] }: { posts: Post[]; titularidades: string[]; sinActividad?: SinActividadItem[] }) {
+export function BoletinDownloader({ posts, sinActividad = [], departamentoNombre }: { posts: Post[]; sinActividad?: SinActividadItem[]; departamentoNombre: string }) {
   const handleDownload = React.useCallback(() => {
     const destacados = ["Jorge Tuto Quiroga", "Juan Pablo Velazco"];
+    const titularidades = [
+      "PRESIDENTE",
+      "VICEPRESIDENTE",
+      "SENADOR",
+      "DIPUTADO PLURINOMINAL",
+      "DIPUTADO UNINOMINAL URBANO",
+      "DIPUTADO UNINOMINAL RURAL",
+      "DIPUTADO SUPRAESTATAL",
+      "DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL",
+      "SIN ACTIVIDAD EN RRSS",
+    ];
     const fechaHoy = new Date();
     const fechaHoyStr = fechaHoy.toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" });
     generarBoletinPDF({
@@ -28,10 +33,10 @@ export function BoletinDownloader({ posts, titularidades, sinActividad = [] }: {
       titularesDestacados: destacados,
       titularidades,
       sinActividad,
-
-      fechaHoy: fechaHoyStr
+      fechaHoy: fechaHoyStr,
+      departamentoNombre
     });
-  }, [posts, titularidades, sinActividad]);
+  }, [posts, sinActividad, departamentoNombre]);
 
   return (
     <Button

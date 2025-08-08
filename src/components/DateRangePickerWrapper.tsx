@@ -1,5 +1,5 @@
 "use client";
-import { DateRangePicker } from "./DateRangePicker";
+import { DateRangePicker } from "@/components/DateRangePicker";
 
 interface DateRangePickerWrapperProps {
   startDate: Date | null;

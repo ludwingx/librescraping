@@ -1,13 +1,6 @@
 import jsPDF from "jspdf";
 
-interface Post {
-  perfil: string;
-  texto: string;
-  posturl: string;
-  titularidad: string;
-  fechapublicacion: string;
-  redsocial?: string;
-}
+import type { Post } from "@/types/Post";
 
 export async function generarBoletinPDF({
   posts,
@@ -15,7 +8,8 @@ export async function generarBoletinPDF({
   titularidades = [],
   sinActividad = [],
   fechaHoy,
-  logoUrl = "/logos/librePDF.png" // Cambia aquí la URL de tu logo
+  logoUrl = "/logos/librePDF.png", // Cambia aquí la URL de tu logo
+  departamentoNombre
 }: {
   posts: Post[];
   titularesDestacados?: string[];
@@ -28,6 +22,7 @@ export async function generarBoletinPDF({
   }[];
   fechaHoy: string;
   logoUrl?: string;
+  departamentoNombre: string;
 }) {
   const doc = new jsPDF();
   let y = 8;
@@ -51,7 +46,7 @@ export async function generarBoletinPDF({
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
-  doc.text(`BOLETIN ${fechaHoy} DE REDES SOCIALES`, 105, y + 1, { align: "center" });
+  doc.text(`BOLETIN ${fechaHoy} DE REDES SOCIALES - ${departamentoNombre}`, 105, y + 1, { align: "center" });
   y += 13;
 
   // volver a texto normal
@@ -108,9 +103,9 @@ export async function generarBoletinPDF({
     y += 10;
   }
 
-  // Publicaciones en Santa Cruz
+  // Publicaciones en el departamento
   doc.setFontSize(12);
-  doc.text("Publicaciones en Santa Cruz:", 15, y);
+  doc.text(`Publicaciones en ${departamentoNombre}:`, 15, y);
   y += 8;
   titularidades.filter(tit => tit !== "SIN ACTIVIDAD EN RRSS").forEach((tit) => {
     doc.setFontSize(12);
@@ -151,8 +146,8 @@ export async function generarBoletinPDF({
 
   // Sin Actividad en RRSS
   if (sinActividad.length) {
-    // Filtrar solo Santa Cruz
-    const sinActividadSantaCruz = sinActividad.filter(item => (item.departamento || '').toUpperCase().includes('SANTA CRUZ'));
+    // Filtrar solo el departamento actual
+    const sinActividadDepartamento = sinActividad.filter(item => (item.departamento || '').toUpperCase().includes(departamentoNombre.toUpperCase()));
 
     // Orden personalizado de titularidad
     const titularidadOrden = [
@@ -167,7 +162,7 @@ export async function generarBoletinPDF({
       'OTRO'
     ];
     // Ordenar por redsocial y luego por titularidad
-    sinActividadSantaCruz.sort((a, b) => {
+    sinActividadDepartamento.sort((a: any, b: any) => {
       const redA = (a.redsocial || '').toUpperCase();
       const redB = (b.redsocial || '').toUpperCase();
       if (redA < redB) return -1;
@@ -194,7 +189,7 @@ export async function generarBoletinPDF({
     doc.line(18, y, 190, y);
     y += 3;
     // Filas
-    sinActividadSantaCruz.forEach((item: { candidato: string; titularidad: string; redsocial: string; }) => {
+    sinActividadDepartamento.forEach((item: { candidato: string; titularidad: string; redsocial: string; }) => {
       // Recortar cada campo si es necesario
       function crop(text: string, maxLen: number) {
         return text.length > maxLen ? text.slice(0, maxLen - 3) + '...' : text;
