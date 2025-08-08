@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Smartphone,
   ScrollText,
+  Users,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -39,11 +40,11 @@ const data = {
       icon: BarChart3,
       isActive: true,
     },
-    // {
-    //   title: "Informe General",
-    //   url: "/dashboard/igeneral",
-    //   icon: TrendingUp,
-    // },
+    {
+      title: "Informe General",
+      url: "/dashboard/igeneral",
+      icon: TrendingUp,
+    },
     ...[
       "Santa Cruz",
       "La Paz",
@@ -58,7 +59,12 @@ const data = {
       title: dep,
       url: `/dashboard/${dep.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')}`,
       icon: MapPin,
-    }))
+    })),
+    {
+      title: "Candidatos", 
+      url: "/dashboard/candidatos",
+      icon: Users,
+    },
   ],
 }
 

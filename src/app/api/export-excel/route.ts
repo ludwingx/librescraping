@@ -27,10 +27,28 @@ export async function GET(req: NextRequest) {
   // Obtener datos filtrados
   const posts = await prisma.scrap_post.findMany({ where });
 
-  // Convertir a formato Excel
-  const worksheet = XLSX.utils.json_to_sheet(posts);
+  // Obtener datos de sin_publicacion (usuarios sin actividad en RRSS)
+  const whereSin: any = {};
+  if (fecha) {
+    const day = new Date(fecha);
+    const nextDay = new Date(day);
+    nextDay.setDate(day.getDate() + 1);
+    whereSin.fecha_scrap = { gte: day, lt: nextDay };
+  }
+  if (ciudad) {
+    whereSin.departamento = { equals: ciudad, mode: 'insensitive' };
+  }
+  if (titularidad) {
+    whereSin.titularidad = { equals: titularidad, mode: 'insensitive' };
+  }
+  const sinActividad = await prisma.sin_publicacion.findMany({ where: whereSin });
+
+  // Crear workbook y agregar ambas hojas
+  const worksheetPosts = XLSX.utils.json_to_sheet(posts);
+  const worksheetSin = XLSX.utils.json_to_sheet(sinActividad);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Publicaciones');
+  XLSX.utils.book_append_sheet(workbook, worksheetPosts, 'Publicaciones');
+  XLSX.utils.book_append_sheet(workbook, worksheetSin, 'Sin actividad RRSS');
   const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
   return new NextResponse(buffer, {

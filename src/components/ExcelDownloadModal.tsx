@@ -159,7 +159,7 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
             {descargando ? "Descargando..." : "Descargar Excel"}
           </Button>
           <DialogClose asChild>
-            <Button variant="outline" className="mt-2">Cerrar</Button>
+            <Button variant="outline" className="p-2">Cerrar</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

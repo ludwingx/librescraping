@@ -181,14 +181,14 @@ const departamentos = [
               </BreadcrumbList>
             </Breadcrumb>
             <div className="flex items-center gap-2 ml-auto pr-2">
-              <Image
+              <img
                 className="w-35 h-10 object-contain"
                 src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75"
                 alt="Libre-Scraping Logo 1"
                 width={120}
                 height={40}
               />
-              <Image
+              <img
                 className="w-22 h-10 object-contain"
                 src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75"
                 alt="Libre-Scraping Logo 2"

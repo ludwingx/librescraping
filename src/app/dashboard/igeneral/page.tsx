@@ -1,9 +1,22 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import prisma from "@/lib/prisma";
-import Image from "next/image";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
+import { BoletinDownloader } from "@/components/BoletinDownloader";
 import { Separator } from "@/components/ui/separator";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, } from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
 
 interface PostGeneral {
   postid: string;
@@ -22,341 +35,221 @@ interface PostGeneral {
   redsocial?: string;
 }
 
-export default async function Page() {
-  // Consultas a cada red social
-  const facebookPosts = (await prisma.scrap_post.findMany({
-    where: { redsocial: "Facebook" },
-    orderBy: { fechapublicacion: "desc" },
-    take: 40,
-  })).map(post => ({ ...post, redsocial: "Facebook" }));
+export default function Page() {
+  // Filtros de fecha
+  const [desde, setDesde] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  });
+  const [hasta, setHasta] = useState(() => {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  });
+  const [allPosts, setAllPosts] = useState<PostGeneral[]>([]);
+  const [sinActividadRegistros, setSinActividadRegistros] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const instagramPosts = (await prisma.scrap_post.findMany({
-    where: { redsocial: "Instagram" },
-    orderBy: { fechapublicacion: "desc" },
-    take: 40,
-  })).map(post => ({ ...post, redsocial: "Instagram" }));
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/general-posts?desde=${desde}&hasta=${hasta}`);
+        const data = await res.json();
+        console.log("[IGENERAL] Respuesta del backend:", data);
+        setAllPosts(data.allPosts || []);
+        setSinActividadRegistros(data.sinActividadRegistros || []);
+      } catch (err) {
+        console.error("[IGENERAL] Error en fetchPosts:", err);
+        setAllPosts([]);
+        setSinActividadRegistros([]);
+      }
+      setLoading(false);
+    };
+    fetchPosts();
+  }, [desde, hasta]);
 
-  const tiktokPosts = (await prisma.scrap_post.findMany({
-    where: { redsocial: "TikTok" },
-    orderBy: { fechapublicacion: "desc" },
-    take: 40,
-  })).map(post => ({ ...post, redsocial: "TikTok" }));
+  // Agrupar por departamento
+  const postsPorDepartamento: { [dep: string]: PostGeneral[] } = {};
+  allPosts.forEach(post => {
+    // Normaliza el nombre del departamento para que coincida con la lista de tabs
+    const dep = (post.departamento || "Sin departamento")
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, ""); // quita tildes
+    if (!postsPorDepartamento[dep]) postsPorDepartamento[dep] = [];
+    postsPorDepartamento[dep].push(post);
+  });
+  console.log("[IGENERAL] allPosts:", allPosts);
+  console.log("[IGENERAL] postsPorDepartamento:", postsPorDepartamento);
 
   return (
-    <div> 
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center justify-between w-full gap-2 px-4">
-            <div className="flex items-center gap-2 w-full">
-              <AppSidebar />
-              <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href="#">Informe General</BreadcrumbLink>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-              <div className="flex items-center gap-2 ml-auto pr-2">
-                <Image src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" width={40} height={40} className="w-10 h-10 object-contain" />
-                <Image src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" width={40} height={40} className="w-10 h-10 object-contain" />
-              </div>
-            </div>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-8 p-2 pt-0 max-w-screen-xl mx-auto">
-          <div className="container mx-auto py-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h1 className="text-3xl font-bold">Informe General: Publicaciones por Red Social</h1>
-              <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">Descargar Boletín</Button>
-            </div>
-          </div>
-          {/* Sección Tuto Quiroga */}
-          <div className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Publicaciones de Tuto Quiroga</h2>
-                <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto rounded shadow bg-white">
-              <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-2 py-2 w-14 text-center">Foto</th>
-                    <th className="px-1 py-2 min-w-[30px]">Nombre</th>
-                    <th className="px-2 py-2 min-w-[200px]">Texto</th>
-                    <th className="px-2 py-2 w-24">Titularidad</th>
-                    <th className="px-2 py-2 w-24">Departamento</th>
-                    <th className="px-2 py-2 w-20 text-center">👍 Me gusta</th>
-                    <th className="px-2 py-2 w-20 text-center">💬 Comentarios</th>
-                    <th className="px-2 py-2 w-20 text-center">🔄 Compartidos</th>
-                    <th className="px-2 py-2 w-14 text-center">Miniatura</th>
-                    
-                    <th className="px-2 py-2 w-24">Fecha</th>
-                    <th className="px-2 py-2 w-24 text-center">Enlace</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: PostGeneral) => (post.nombrepagina || '').toLowerCase() === 'tuto quiroga').map((post: PostGeneral) => (
-                    <tr key={`tuto-${post.postid}-${post.redsocial}`} className="bg-white border-b">
-                      <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                      </td>
-                      <td className="px-4 py-2 text-blue-600 underline border">
-                        <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                        <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                      </td>
-                      <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
-                      <td className="px-4 py-2 border">{post.titularidad || ""}</td>
-                      <td className="px-4 py-2 border">{post.departamento || ""}</td>
-                      <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
-                      <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
-                      <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                      </td>
-                      
-                      <td className="px-4 py-2 border">{post.fechapublicacion}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+    <>
+   <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-center justify-between w-full gap-2 px-4">
+          <div className="flex items-center gap-2 w-full">
+            <SidebarTrigger className="-ml-1" />
 
-          {/* Sección Juan Pablo Velasco */}
-          <div className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Publicaciones de Juan Pablo Velasco</h2>
-                <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto rounded shadow bg-white">
-              <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-2 py-2 w-14 text-center">Foto</th>
-                    <th className="px-1 py-2 min-w-[30px]">Nombre</th>
-                    <th className="px-2 py-2 min-w-[200px]">Texto</th>
-                    <th className="px-2 py-2 w-24">Titularidad</th>
-                    <th className="px-2 py-2 w-24">Departamento</th>
-                    <th className="px-2 py-2 w-20 text-center">👍 Me gusta</th>
-                    <th className="px-2 py-2 w-20 text-center">💬 Comentarios</th>
-                    <th className="px-2 py-2 w-20 text-center">🔄 Compartidos</th>
-                    <th className="px-2 py-2 w-14 text-center">Miniatura</th>
-                    
-                    <th className="px-2 py-2 w-24">Fecha</th>
-                    <th className="px-2 py-2 w-24 text-center">Enlace</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...facebookPosts, ...instagramPosts, ...tiktokPosts].filter((post: PostGeneral) => (post.nombrepagina || '').toLowerCase() === 'juan pablo velasco').map((post: PostGeneral) => (
-                    <tr key={`jpvelasco-${post.postid}-${post.redsocial}`} className="bg-white border-b">
-                      <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                      </td>
-                      <td className="px-4 py-2 text-blue-600 underline border">
-                        <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                        <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                      </td>
-                      <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
-                      <td className="px-4 py-2 border">{post.titularidad || ""}</td>
-                      <td className="px-4 py-2 border">{post.departamento || ""}</td>
-                      <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
-                      <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
-                      <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                      </td>
-                      
-                      <td className="px-4 py-2 border">{post.fechapublicacion}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Sección Facebook */}
-          <div className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Publicaciones de Facebook</h2>
-                <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto rounded shadow bg-white">
-              <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-2 py-2 w-14 text-center">Foto</th>
-                    <th className="px-1 py-2 min-w-[30px]">Nombre</th>
-                    <th className="px-2 py-2 min-w-[200px]">Texto</th>
-                    <th className="px-2 py-2 w-24">Titularidad</th>
-                    <th className="px-2 py-2 w-24">Departamento</th>
-                    <th className="px-2 py-2 w-20 text-center">👍 Me gusta</th>
-                    <th className="px-2 py-2 w-20 text-center">💬 Comentarios</th>
-                    <th className="px-2 py-2 w-20 text-center">🔄 Compartidos</th>
-                    <th className="px-2 py-2 w-14 text-center">Miniatura</th>
-                    
-                    <th className="px-2 py-2 w-24">Fecha</th>
-                    <th className="px-2 py-2 w-24 text-center">Enlace</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {facebookPosts.map((post: PostGeneral, idx: number) => (
-                    <tr key={`facebook-${post.postid}-Facebook-${idx}`} className="bg-white border-b">
-                      <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                      </td>
-                      <td className="px-4 py-2 text-blue-600 underline border">
-                        <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                        <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                      </td>
-                      <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
-                      <td className="px-4 py-2 border">{post.titularidad || ""}</td>
-                      <td className="px-4 py-2 border">{post.departamento || ""}</td>
-                      <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
-                      <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
-                      <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                      </td>
-                      
-                      <td className="px-4 py-2 border">{post.fechapublicacion}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Sección Instagram */}
-          <div className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Publicaciones de Instagram</h2>
-                <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
-              </div>
-              {/* Botón eliminado, solo hay uno global arriba */}
-            </div>
-            <div className="overflow-x-auto rounded shadow bg-white">
-              <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-2 py-2 w-14 text-center">Foto</th>
-                    <th className="px-1 py-2 min-w-[30px]">Nombre</th>
-                    <th className="px-2 py-2 min-w-[200px]">Texto</th>
-                    <th className="px-2 py-2 w-24">Titularidad</th>
-                    <th className="px-2 py-2 w-24">Departamento</th>
-                    <th className="px-2 py-2 w-20 text-center">👍 Me gusta</th>
-                    <th className="px-2 py-2 w-20 text-center">💬 Comentarios</th>
-                    <th className="px-2 py-2 w-20 text-center">🔄 Compartidos</th>
-                    <th className="px-2 py-2 w-14 text-center">Miniatura</th>
-                    
-                    <th className="px-2 py-2 w-24">Fecha</th>
-                    <th className="px-2 py-2 w-24 text-center">Enlace</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {instagramPosts.map((post: PostGeneral, idx: number) => (
-                    <tr key={`instagram-${post.postid}-Instagram-${idx}`} className="bg-white border-b">
-                      <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                      </td>
-                      <td className="px-4 py-2 text-blue-600 underline border">
-                        <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                        <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                      </td>
-                      <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
-                      <td className="px-4 py-2 border">{post.titularidad || ""}</td>
-                      <td className="px-4 py-2 border">{post.departamento || ""}</td>
-                      <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
-                      <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
-                      <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                      </td>
-                      
-                      <td className="px-4 py-2 border">{post.fechapublicacion}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Sección TikTok */}
-          <div className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">Publicaciones de TikTok</h2>
-                <span className="text-muted-foreground text-sm font-medium">{new Date().toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
-              </div>
-              {/* Botón eliminado, solo hay uno global arriba */}
-            </div>
-            <div className="overflow-x-auto rounded shadow bg-white">
-              <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-2 py-2 w-14 text-center">Foto</th>
-                    <th className="px-1 py-2 min-w-[30px]">Nombre</th>
-                    <th className="px-2 py-2 min-w-[200px]">Texto</th>
-                    <th className="px-2 py-2 w-24">Titularidad</th>
-                    <th className="px-2 py-2 w-24">Departamento</th>
-                    <th className="px-2 py-2 w-20 text-center">👍 Me gusta</th>
-                    <th className="px-2 py-2 w-20 text-center">💬 Comentarios</th>
-                    <th className="px-2 py-2 w-20 text-center">🔄 Compartidos</th>
-                    <th className="px-2 py-2 w-14 text-center">Miniatura</th>
-                    
-                    <th className="px-2 py-2 w-24">Fecha</th>
-                    <th className="px-2 py-2 w-24 text-center">Enlace</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tiktokPosts.map((post: PostGeneral, idx: number) => (
-                    <tr key={`tiktok-${post.postid}-TikTok-${idx}`} className="bg-white border-b">
-                      <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap border">
-                        <Image src={post.fotoperfil || '/default-avatar.png'} alt={post.nombrepagina} width={40} height={40} className="w-10 h-10 rounded-full mx-auto" />
-                      </td>
-                      <td className="px-4 py-2 text-blue-600 underline border">
-                        <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                        <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                      </td>
-                      <td className="px-4 py-2 border">{post.texto?.slice(0, 80)}{post.texto?.length > 80 ? '...' : ''}</td>
-                      <td className="px-4 py-2 border">{post.titularidad || ""}</td>
-                      <td className="px-4 py-2 border">{post.departamento || ""}</td>
-                      <td className="px-4 py-2 text-center border">👍 {post.likes}</td>
-                      <td className="px-4 py-2 text-center border">💬 {post.comentarios}</td>
-                      <td className="px-4 py-2 text-center border">🔄 {post.compartidos}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <Image src={post.img || '/default-image.png'} alt="miniatura" width={120} height={120} className="w-28 h-28 object-cover rounded-lg mx-auto" />
-                      </td>
-                      
-                      <td className="px-4 py-2 border">{post.fechapublicacion}</td>
-                      <td className="px-4 py-2 text-center border">
-                        <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#">Informe General</BreadcrumbLink>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+            <div className="flex items-center gap-2 ml-auto pr-2">
+              <img src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" width={40} height={40} className="w-10 h-10 object-contain" />
+              <img src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" width={40} height={40} className="w-10 h-10 object-contain" />
             </div>
           </div>
         </div>
+      </header>
+      <div className="flex flex-1 flex-col gap-8 p-2 pt-0 max-w-screen-xl mx-auto">
+        <div className="container mx-auto py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-3xl font-bold">Informe General: Publicaciones por Departamento</h1>
+            <ExcelDownloadModal
+              posts={allPosts.map(post => ({
+                perfil: post.nombrepagina || "",
+                nombrepagina: post.nombrepagina,
+                texto: post.texto,
+                posturl: post.posturl,
+                titularidad: post.titularidad,
+                fechapublicacion: post.fechapublicacion,
+                redsocial: post.redsocial,
+                departamento: post.departamento,
+                likes: post.likes,
+                comentarios: post.comentarios,
+                compartidos: post.compartidos,
+                img: post.img,
+                fotoperfil: post.fotoperfil,
+                perfilurl: post.perfilurl,
+              }))}
+              sinActividad={sinActividadRegistros}
+              departamentoNombre={"INFORME GENERAL"}
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
+            <label htmlFor="desde" className="font-medium">Desde:</label>
+            <input
+              id="desde"
+              type="date"
+              className="border rounded px-2 py-1"
+              value={desde}
+              onChange={e => setDesde(e.target.value)}
+              max={hasta}
+            />
+            <label htmlFor="hasta" className="font-medium ml-2">Hasta:</label>
+            <input
+              id="hasta"
+              type="date"
+              className="border rounded px-2 py-1"
+              value={hasta}
+              onChange={e => setHasta(e.target.value)}
+              min={desde}
+            />
+            {loading && <span className="text-blue-600 ml-4">Cargando datos...</span>}
+          </div>
+        </div>
+        {/* Render ordenado: PAIS, 9 departamentos, luego Sin Actividad */}
+        {[
+          "PAIS",
+          "LA PAZ",
+          "SANTA CRUZ",
+          "COCHABAMBA",
+          "ORURO",
+          "POTOSI",
+          "CHUQUISACA",
+          "TARIJA",
+          "BENI",
+          "PANDO"
+        ].map(dep => (
+          <div key={dep} className="container mx-auto py-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold">{dep}</h2>
+              </div>
+            </div>
+            <div className="w-full overflow-x-auto p-2">
+              <div className="overflow-x-auto">
+                <Table className="w-full min-w-[500px] sm:min-w-[900px] border border-gray-200 rounded-lg bg-white text-xs">
+                  <TableHeader>
+                    <TableRow className="bg-gray-100">
+                      <TableHead className="px-1 py-1 min-w-[30px]">Nombre</TableHead>
+                      <TableHead className="px-1 py-1 min-w-[120px]">Texto</TableHead>
+                      <TableHead className="px-1 py-1 w-16 text-center">Me gusta</TableHead>
+                      <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Comentarios</TableHead>
+                      <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Compartidos</TableHead>
+                      <TableHead className="px-1 py-1 w-20 hidden lg:table-cell">Red Social</TableHead>
+                      <TableHead className="px-1 py-1 w-24 hidden lg:table-cell">Fecha y hora</TableHead>
+                      <TableHead className="px-1 py-1 w-14 text-center hidden lg:table-cell">Ver post</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(postsPorDepartamento[dep] || []).length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                          No hay publicaciones extraídas para este grupo
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      postsPorDepartamento[dep].map((post: PostGeneral, idx: number) => (
+                        <TableRow key={`${dep}-${post.postid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                          <TableCell className="px-1 py-1 max-w-[100px] truncate">
+                            <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
+                            <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
+                          </TableCell>
+                          <TableCell className="px-1 py-1 max-w-[120px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                          <TableCell className="px-1 py-1 text-center">{post.likes}</TableCell>
+                          <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                          <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                          <TableCell className="px-1 py-1 hidden lg:table-cell">{post.redsocial}</TableCell>
+                          <TableCell className="px-1 py-1 hidden lg:table-cell">{post.fechapublicacion}</TableCell>
+                          <TableCell className="px-1 py-1 text-center hidden lg:table-cell">
+                            <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        ))}
+        {/* Tabla de usuarios sin actividad RRSS */}
+        <div className="container mx-auto py-8">
+          <h2 className="text-xl font-bold mb-2">Usuarios sin actividad en RRSS</h2>
+          <div className="overflow-x-auto rounded shadow bg-white">
+            <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-2 py-2">Candidato</th>
+                  <th className="px-2 py-2">Titularidad</th>
+                  <th className="px-2 py-2">Departamento</th>
+                  <th className="px-2 py-2">Red Social</th>
+                  <th className="px-2 py-2">Fecha Scrap</th>
+                </tr>
+              </thead>
+              <tbody style={{ minHeight: '300px' }}>
+                {sinActividadRegistros.map((reg, idx) => (
+                  <tr key={idx} className="bg-white border-b">
+                    <td className="px-2 py-2 border">{reg.candidato}</td>
+                    <td className="px-2 py-2 border">{reg.titularidad}</td>
+                    <td className="px-2 py-2 border">{reg.departamento}</td>
+                    <td className="px-2 py-2 border">{reg.redsocial}</td>
+                    <td className="px-2 py-2 border">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleDateString() : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+    </>
   );
 }

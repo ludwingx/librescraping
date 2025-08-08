@@ -12,7 +12,10 @@ const nextConfig: NextConfig = {
       "noticias-admin-panel.vercel.app",
       "tuto-noticias-test.vercel.app",
       "i.postimg.cc",
-      "placeholder.com" 
+      "placeholder.com",
+      'scontent.fgyd3-1.fna.fbcdn.net',
+      'scontent.xx.fbcdn.net',
+      'scontent.fbcb2-2.fna.fbcdn.net', 
     ],
   },
 };
