@@ -17,14 +17,14 @@ model User {
 
 model scrap_post {
   id Int @id @default(autoincrement())
-  postid String
+  candidatoid String 
   perfil String
   nombrepagina String
   perfilurl String
   posturl String
   texto String
   hashtags String
-  fechapublicacion String
+  fechapublicacion DateTime
   likes Int
   comentarios Int
   compartidos Int

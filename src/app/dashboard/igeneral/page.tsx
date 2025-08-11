@@ -19,7 +19,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
 
 interface PostGeneral {
-  postid: string;
+  candidatoid: string;
   nombrepagina: string;
   texto: string;
   posturl: string;
@@ -198,7 +198,7 @@ export default function Page() {
                       </TableRow>
                     ) : (
                       postsPorDepartamento[dep].map((post: PostGeneral, idx: number) => (
-                        <TableRow key={`${dep}-${post.postid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                        <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
                           <TableCell className="px-1 py-1 max-w-[100px] truncate">
                             <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
                             <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
