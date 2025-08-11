@@ -5,17 +5,26 @@ import * as XLSX from 'xlsx';
 export async function GET(req: NextRequest) {
   // Leer parámetros de filtro
   const { searchParams } = new URL(req.url);
-  const fecha = searchParams.get('fecha');
+  const desde = searchParams.get('desde');
+  const hasta = searchParams.get('hasta');
   const ciudad = searchParams.get('ciudad');
   const titularidad = searchParams.get('titularidad');
 
-  // Construir filtro dinámico
+  // Construir filtro dinámico para scrap_post
   const where: any = {};
-  if (fecha) {
-    const day = new Date(fecha);
-    const nextDay = new Date(day);
-    nextDay.setDate(day.getDate() + 1);
-    where.created_at = { gte: day, lt: nextDay };
+  if (desde && hasta) {
+    const desdeDate = new Date(desde);
+    const hastaDate = new Date(hasta);
+    // Incluir todo el día 'hasta'
+    hastaDate.setHours(23,59,59,999);
+    where.created_at = { gte: desdeDate, lte: hastaDate };
+  } else if (desde) {
+    const desdeDate = new Date(desde);
+    where.created_at = { gte: desdeDate };
+  } else if (hasta) {
+    const hastaDate = new Date(hasta);
+    hastaDate.setHours(23,59,59,999);
+    where.created_at = { lte: hastaDate };
   }
   if (ciudad) {
     where.departamento = { equals: ciudad, mode: 'insensitive' };
@@ -27,13 +36,20 @@ export async function GET(req: NextRequest) {
   // Obtener datos filtrados
   const posts = await prisma.scrap_post.findMany({ where });
 
-  // Obtener datos de sin_publicacion (usuarios sin actividad en RRSS)
+  // Construir filtro dinámico para sin_publicacion
   const whereSin: any = {};
-  if (fecha) {
-    const day = new Date(fecha);
-    const nextDay = new Date(day);
-    nextDay.setDate(day.getDate() + 1);
-    whereSin.fecha_scrap = { gte: day, lt: nextDay };
+  if (desde && hasta) {
+    const desdeDate = new Date(desde);
+    const hastaDate = new Date(hasta);
+    hastaDate.setHours(23,59,59,999);
+    whereSin.fecha_scrap = { gte: desdeDate, lte: hastaDate };
+  } else if (desde) {
+    const desdeDate = new Date(desde);
+    whereSin.fecha_scrap = { gte: desdeDate };
+  } else if (hasta) {
+    const hastaDate = new Date(hasta);
+    hastaDate.setHours(23,59,59,999);
+    whereSin.fecha_scrap = { lte: hastaDate };
   }
   if (ciudad) {
     whereSin.departamento = { equals: ciudad, mode: 'insensitive' };

@@ -65,13 +65,18 @@ export async function GET(req: NextRequest) {
     }
 
     // Obtener todos los registros sin actividad RRSS de todos los departamentos
-    const sinActividadRegistros = await prisma.sin_publicacion.findMany({
-      where: {
-        ...(fechaFiltro ? { fecha_scrap: fechaFiltro } : {}),
-      },
-      orderBy: { fecha_scrap: 'desc' },
-      take: 500,
-    });
+    // Consulta SQL cruda para evitar error Prisma y filtrar departamento null o vacío
+    let sinActividadRegistrosRaw: any[] = [];
+    if (fechaFiltro && fechaFiltro.gte && fechaFiltro.lte) {
+      sinActividadRegistrosRaw = await prisma.$queryRaw`SELECT * FROM "sin_publicacion" WHERE "fecha_scrap" >= ${fechaFiltro.gte} AND "fecha_scrap" <= ${fechaFiltro.lte} AND "departamento" IS NOT NULL AND "departamento" <> '' ORDER BY "fecha_scrap" DESC LIMIT 500`;
+    } else if (fechaFiltro && fechaFiltro.gte) {
+      sinActividadRegistrosRaw = await prisma.$queryRaw`SELECT * FROM "sin_publicacion" WHERE "fecha_scrap" >= ${fechaFiltro.gte} AND "departamento" IS NOT NULL AND "departamento" <> '' ORDER BY "fecha_scrap" DESC LIMIT 500`;
+    } else if (fechaFiltro && fechaFiltro.lte) {
+      sinActividadRegistrosRaw = await prisma.$queryRaw`SELECT * FROM "sin_publicacion" WHERE "fecha_scrap" <= ${fechaFiltro.lte} AND "departamento" IS NOT NULL AND "departamento" <> '' ORDER BY "fecha_scrap" DESC LIMIT 500`;
+    } else {
+      sinActividadRegistrosRaw = await prisma.$queryRaw`SELECT * FROM "sin_publicacion" WHERE "departamento" IS NOT NULL AND "departamento" <> '' ORDER BY "fecha_scrap" DESC LIMIT 500`;
+    }
+    const sinActividadRegistros = sinActividadRegistrosRaw;
 
     return NextResponse.json({ allPosts, postsNacionales, sinActividadRegistros });
   } catch (error) {

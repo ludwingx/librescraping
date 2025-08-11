@@ -10,10 +10,15 @@ export async function GET(req: NextRequest) {
   let fechaInicio: Date | undefined = undefined;
   let fechaFin: Date | undefined = undefined;
 
-  if (desde) fechaInicio = new Date(desde);
+  // Ajuste: convertir fechas locales (zona -04:00) a UTC para el filtro
+  const LOCAL_OFFSET_MINUTES = 4 * 60; // Bolivia -04:00
+  if (desde) {
+    const localDesde = new Date(desde + 'T00:00:00-04:00');
+    fechaInicio = new Date(localDesde.toISOString()); // UTC
+  }
   if (hasta) {
-    fechaFin = new Date(hasta);
-    fechaFin.setHours(23, 59, 59, 999);
+    const localHasta = new Date(hasta + 'T23:59:59.999-04:00');
+    fechaFin = new Date(localHasta.toISOString()); // UTC
   }
 
   // Filtro base

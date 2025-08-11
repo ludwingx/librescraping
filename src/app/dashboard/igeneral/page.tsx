@@ -36,6 +36,8 @@ interface PostGeneral {
 }
 
 export default function Page() {
+  // Estado para controlar qué departamentos están expandidos
+  const [openRows, setOpenRows] = useState<{[key:string]: boolean}>({});
   // Filtros de fecha
   const [desde, setDesde] = useState(() => {
     const d = new Date();
@@ -176,17 +178,18 @@ export default function Page() {
             </div>
             <div className="w-full overflow-x-auto p-2">
               <div className="overflow-x-auto">
-                <Table className="w-full min-w-[500px] sm:min-w-[900px] border border-gray-200 rounded-lg bg-white text-xs">
+                <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
                   <TableHeader>
                     <TableRow className="bg-gray-100">
-                      <TableHead className="px-1 py-1 min-w-[30px]">Nombre</TableHead>
-                      <TableHead className="px-1 py-1 min-w-[120px]">Texto</TableHead>
-                      <TableHead className="px-1 py-1 w-16 text-center">Me gusta</TableHead>
-                      <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Comentarios</TableHead>
-                      <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Compartidos</TableHead>
-                      <TableHead className="px-1 py-1 w-20 hidden lg:table-cell">Red Social</TableHead>
-                      <TableHead className="px-1 py-1 w-24 hidden lg:table-cell">Fecha y hora</TableHead>
-                      <TableHead className="px-1 py-1 w-14 text-center hidden lg:table-cell">Ver post</TableHead>
+                      <TableHead className="px-1.5 py-1.5 min-w-[120px] w-[120px]">Nombre</TableHead>
+                      <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[100px] text-center">Departamento</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[80px] text-center">Me gusta</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">Comentarios</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">Compartidos</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
+                      <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -197,23 +200,43 @@ export default function Page() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      postsPorDepartamento[dep].map((post: PostGeneral, idx: number) => (
-                        <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
-                          <TableCell className="px-1 py-1 max-w-[100px] truncate">
-                            <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                            <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                          </TableCell>
-                          <TableCell className="px-1 py-1 max-w-[120px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
-                          <TableCell className="px-1 py-1 text-center">{post.likes}</TableCell>
-                          <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.comentarios}</TableCell>
-                          <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.compartidos}</TableCell>
-                          <TableCell className="px-1 py-1 hidden lg:table-cell">{post.redsocial}</TableCell>
-                          <TableCell className="px-1 py-1 hidden lg:table-cell">{post.fechapublicacion}</TableCell>
-                          <TableCell className="px-1 py-1 text-center hidden lg:table-cell">
-                            <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      (() => {
+                        const rows = postsPorDepartamento[dep] || [];
+                        const isOpen = openRows[dep] || false;
+                        const rowsToShow = isOpen ? rows : rows.slice(0, 5);
+                        return <>
+                          {rowsToShow.map((post: PostGeneral, idx: number) => (
+                            <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                              <TableCell className="px-1.5 py-1.5 w-[120px] max-w-[120px] truncate">
+                                <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
+                                <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
+                              </TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[100px] text-center">{post.departamento}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[80px] text-center">{post.likes}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
+                              <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
+                                <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {rows.length > 5 && (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-2">
+                                <button
+                                  className="text-blue-600 underline cursor-pointer"
+                                  onClick={() => setOpenRows(prev => ({ ...prev, [dep]: !isOpen }))}
+                                >
+                                  {isOpen ? 'Ver menos' : `Ver más (${rows.length - 5})`}
+                                </button>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </>;
+                      })()
                     )}
                   </TableBody>
                 </Table>
@@ -242,7 +265,7 @@ export default function Page() {
                     <td className="px-2 py-2 border">{reg.titularidad}</td>
                     <td className="px-2 py-2 border">{reg.departamento}</td>
                     <td className="px-2 py-2 border">{reg.redsocial}</td>
-                    <td className="px-2 py-2 border">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleDateString() : ''}</td>
+                    <td className="px-2 py-2 border">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</td>
                   </tr>
                 ))}
               </tbody>
