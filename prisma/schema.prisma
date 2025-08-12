@@ -16,25 +16,26 @@ model User {
 }
 
 model scrap_post {
-  id Int @id @default(autoincrement())
-  candidatoid String 
-  perfil String
-  nombrepagina String
-  perfilurl String
-  posturl String
-  texto String
-  hashtags String
+  id            Int       @id @default(autoincrement())
+  candidatoid   Int       // id candidato
+  candidato     candidatos @relation(fields: [candidatoid], references: [id])
+  perfil        String
+  nombrepagina  String
+  perfilurl     String
+  posturl       String
+  texto         String
+  hashtags      String
   fechapublicacion DateTime
-  likes Int
-  comentarios Int
-  compartidos Int
-  vistas Int?
-  img String
-  fotoperfil String
-  redsocial String
-  departamento String
-  titularidad String
-  created_at DateTime @default(now())
+  likes         Int
+  comentarios   Int
+  compartidos   Int
+  vistas        Int?
+  img           String
+  fotoperfil    String
+  redsocial     String
+  departamento  String
+  titularidad   String
+  created_at    DateTime  @default(now())
 }
 model sin_publicacion{
   id Int @id @default(autoincrement())
@@ -44,14 +45,15 @@ model sin_publicacion{
   fecha_scrap DateTime @default(now())// fecha_scrap es como un created_at
   candidato String
 }
-model candidatos{
-  id Int @id @default(autoincrement())
-  departamento String
-  titularidad String
-  nombre_completo String
-  facebook_url String
-  instagram_url String
-  tiktok_url String
-  fecha_actualizacion DateTime @default(now())
-  status String
+model candidatos {
+  id                 Int          @id @default(autoincrement()) // id candidato
+  departamento       String
+  titularidad        String
+  nombre_completo    String
+  facebook_url       String
+  instagram_url      String
+  tiktok_url         String
+  fecha_actualizacion DateTime    @default(now())
+  status             String
+  scrap_posts        scrap_post[]
 }

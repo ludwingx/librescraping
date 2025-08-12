@@ -39,7 +39,12 @@ export function LoginForm({
 </div>
 <h2 className="text-xl font-semibold mb-2">Inicia sesión</h2>
               </div>
-              
+              {/* Mensaje de error si login falló */}
+              {state?.error && (
+                <div className="mb-2 text-sm text-red-600 text-center font-semibold">
+                  {state.error}
+                </div>
+              )}
               <div className="grid gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="username">Usuario</Label>

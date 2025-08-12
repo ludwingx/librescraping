@@ -20,22 +20,6 @@ import {
 } from "@/components/ui/card";
 
 export default async function Page() {
-  // Obtener resumen de publicaciones por titularidad
-  // Obtener la fecha de hoy en formato ISO (sin hora)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
-  // Obtener cantidad de los que no han publicado por titularidad
-  const totalSinPublicar = await prisma.sin_publicacion.count({
-    where: {
-      fecha_scrap: {
-        gte: today,
-        lt: tomorrow,
-      },
-    },
-  });
 
   const posts = (
     await prisma.scrap_post.findMany({
@@ -49,8 +33,13 @@ export default async function Page() {
       post.created_at instanceof Date
         ? post.created_at.toISOString()
         : post.created_at,
+    fechapublicacion:
+      post.fechapublicacion instanceof Date
+        ? post.fechapublicacion.toISOString()
+        : post.fechapublicacion,
   }));
-  console.log(posts);
+
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -86,43 +75,7 @@ export default async function Page() {
       <main className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-gradient-to-b from-blue-50 via-white to-white min-h-screen">
         <div className="container mx-auto py-8 max-w-7xl">
           <div className="flex flex-col items-center w-full">
-            {/* Tarjetas resumen */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10">
-              {/* Total publicaciones hoy */}
-              <Card className="border-blue-200 shadow-md bg-white">
-                <CardHeader>
-                  <CardTitle className="text-blue-700 flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-blue-500" />{" "}
-                    Publicaciones hoy
-                  </CardTitle>
-                  <CardDescription>
-                    Total de publicaciones registradas hoy
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <span className="text-4xl font-bold text-blue-700">
-                    {posts.length}
-                  </span>
-                </CardContent>
-              </Card>
-              {/* Total sin publicar hoy */}
-              <Card className="border-red-200 shadow-md bg-white">
-                <CardHeader>
-                  <CardTitle className="text-red-700 flex items-center gap-2">
-                    <Users className="w-6 h-6 text-red-500" /> Sin publicar hoy
-                  </CardTitle>
-                  <CardDescription>
-                    Cuentas que no publicaron hoy
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <span className="text-4xl font-bold text-red-700">
-                    {totalSinPublicar}
-                  </span>
-                </CardContent>
-              </Card>
-            </div>
-
+        
             {/* Descarga Excel */}
             <Card className="w-full max-w-3xl mx-auto border-blue-100">
               <CardHeader>
@@ -143,8 +96,10 @@ export default async function Page() {
                 />
               </CardContent>
             </Card>
+            </div>
+
+            
           </div>
-        </div>
       </main>
     </>
   );
