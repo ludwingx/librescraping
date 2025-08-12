@@ -22,6 +22,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface PostGeneral {
   id: number;
+  candidatoid: string;
   perfil: string;
   nombrepagina: string;
   texto: string;
@@ -52,13 +53,16 @@ export default function DepartamentoPage() {
   const departamentoNombre = decodeURIComponent(departamento as string)
     .replace(/(^|\s)\S/g, (l) => l.toUpperCase());
   const [desde, setDesde] = useState(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d.toISOString().slice(0, 10);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
   });
   const [hasta, setHasta] = useState(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
   });
   const [allPosts, setAllPosts] = useState<PostGeneral[]>([]);
   const [postsNacionales, setPostsNacionales] = useState<PostGeneral[]>([]);

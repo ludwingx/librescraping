@@ -22,9 +22,11 @@ interface PostGeneral {
   candidatoid: string;
   nombrepagina: string;
   texto: string;
+  perfil: string;
   posturl: string;
   titularidad?: string;
   departamento?: string;
+  vistas?: number;
   likes?: number;
   comentarios?: number;
   compartidos?: number;
@@ -40,13 +42,16 @@ export default function Page() {
   const [openRows, setOpenRows] = useState<{[key:string]: boolean}>({});
   // Filtros de fecha
   const [desde, setDesde] = useState(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d.toISOString().slice(0, 10);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
   });
   const [hasta, setHasta] = useState(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
   });
   const [allPosts, setAllPosts] = useState<PostGeneral[]>([]);
   const [sinActividadRegistros, setSinActividadRegistros] = useState<any[]>([]);
@@ -71,14 +76,12 @@ export default function Page() {
     fetchPosts();
   }, [desde, hasta]);
 
-  // Agrupar por departamento
   const postsPorDepartamento: { [dep: string]: PostGeneral[] } = {};
   allPosts.forEach(post => {
-    // Normaliza el nombre del departamento para que coincida con la lista de tabs
     const dep = (post.departamento || "Sin departamento")
       .toUpperCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, ""); // quita tildes
+      .replace(/[\u0300-\u036f]/g, "");
     if (!postsPorDepartamento[dep]) postsPorDepartamento[dep] = [];
     postsPorDepartamento[dep].push(post);
   });
@@ -116,7 +119,7 @@ export default function Page() {
             <h1 className="text-3xl font-bold">Informe General: Publicaciones por Departamento</h1>
             <ExcelDownloadModal
               posts={allPosts.map(post => ({
-                perfil: post.nombrepagina || "",
+                perfil: post.perfil || "",
                 nombrepagina: post.nombrepagina,
                 texto: post.texto,
                 posturl: post.posturl,
@@ -157,9 +160,82 @@ export default function Page() {
             {loading && <span className="text-blue-600 ml-4">Cargando datos...</span>}
           </div>
         </div>
-        {/* Render ordenado: PAIS, 9 departamentos, luego Sin Actividad */}
+        {/* Mostrar PRESIDENTE y VICEPRESIDENTE */}
+        {["PRESIDENTE", "VICEPRESIDENTE"].map(titularidad => {
+          const rows = allPosts.filter(post => (post.titularidad || "").toUpperCase() === titularidad);
+          const isOpen = openRows[titularidad] || false;
+          const rowsToShow = isOpen ? rows : rows.slice(0, 5);
+          return (
+            <div key={titularidad} className="container mx-auto py-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-bold">{titularidad}</h2>
+                </div>
+              </div>
+              <div className="w-full overflow-x-auto p-2">
+                <div className="overflow-x-auto">
+                  <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
+                        <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Me gusta</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Vistas</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Comentarios</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Compartidos</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rowsToShow.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                            No hay publicaciones extraídas para este grupo
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        rowsToShow.map((post: PostGeneral, idx: number) => (
+                          <TableRow key={`${titularidad}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                            <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
+                              <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
+                              <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
+                            </TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.likes}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                            <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableHead>
+                            <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
+                              <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                      {rows.length > 5 && (
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-2">
+                            <button
+                              className="text-blue-600 underline cursor-pointer"
+                              onClick={() => setOpenRows(prev => ({ ...prev, [titularidad]: !isOpen }))}
+                            >
+                              {isOpen ? 'Ver menos' : `Ver más (${rows.length - 5})`}
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {/* Mostrar tablas por departamento */}
         {[
-          "PAIS",
           "LA PAZ",
           "SANTA CRUZ",
           "COCHABAMBA",
@@ -169,81 +245,81 @@ export default function Page() {
           "TARIJA",
           "BENI",
           "PANDO"
-        ].map(dep => (
-          <div key={dep} className="container mx-auto py-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold">{dep}</h2>
+        ].map(dep => {
+          const rows = (postsPorDepartamento[dep] || []).filter(post => (post.titularidad || "").toUpperCase() !== "PRESIDENTE" && (post.titularidad || "").toUpperCase() !== "VICEPRESIDENTE");
+          const isOpen = openRows[dep] || false;
+          const rowsToShow = isOpen ? rows : rows.slice(0, 5);
+          return (
+            <div key={dep} className="container mx-auto py-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-bold">{dep}</h2>
+                </div>
               </div>
-            </div>
-            <div className="w-full overflow-x-auto p-2">
-              <div className="overflow-x-auto">
-                <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
-                  <TableHeader>
-                    <TableRow className="bg-gray-100">
-                      <TableHead className="px-1.5 py-1.5 min-w-[120px] w-[120px]">Nombre</TableHead>
-                      <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[100px] text-center">Departamento</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[80px] text-center">Me gusta</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">Comentarios</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">Compartidos</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
-                      <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(postsPorDepartamento[dep] || []).length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          No hay publicaciones extraídas para este grupo
-                        </TableCell>
+              <div className="w-full overflow-x-auto p-2">
+                <div className="overflow-x-auto">
+                  <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
+                        <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[100px] text-center">Departamento</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Me gusta</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Vistas</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Comentarios</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Compartidos</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
+                        <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
                       </TableRow>
-                    ) : (
-                      (() => {
-                        const rows = postsPorDepartamento[dep] || [];
-                        const isOpen = openRows[dep] || false;
-                        const rowsToShow = isOpen ? rows : rows.slice(0, 5);
-                        return <>
-                          {rowsToShow.map((post: PostGeneral, idx: number) => (
-                            <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
-                              <TableCell className="px-1.5 py-1.5 w-[120px] max-w-[120px] truncate">
-                                <div className="font-medium text-gray-900 text-xs">{post.nombrepagina}</div>
-                                <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
-                              </TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[100px] text-center">{post.departamento}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[80px] text-center">{post.likes}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[105px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
-                              <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
-                                <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {rows.length > 5 && (
-                            <TableRow>
-                              <TableCell colSpan={8} className="text-center py-2">
-                                <button
-                                  className="text-blue-600 underline cursor-pointer"
-                                  onClick={() => setOpenRows(prev => ({ ...prev, [dep]: !isOpen }))}
-                                >
-                                  {isOpen ? 'Ver menos' : `Ver más (${rows.length - 5})`}
-                                </button>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </>;
-                      })()
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {rowsToShow.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                            No hay publicaciones extraídas para este departamento
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        rowsToShow.map((post: PostGeneral, idx: number) => (
+                          <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                            <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
+                              <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
+                              <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
+                            </TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[100px] text-center">{post.departamento}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.likes}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
+                            <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
+                              <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                      {rows.length > 5 && (
+                        <TableRow>
+                          <TableCell colSpan={10} className="text-center py-2">
+                            <button
+                              className="text-blue-600 underline cursor-pointer"
+                              onClick={() => setOpenRows(prev => ({ ...prev, [dep]: !isOpen }))}
+                            >
+                              {isOpen ? 'Ver menos' : `Ver más (${rows.length - 5})`}
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {/* Tabla de usuarios sin actividad RRSS */}
         <div className="container mx-auto py-8">
           <h2 className="text-xl font-bold mb-2">Usuarios sin actividad en RRSS</h2>

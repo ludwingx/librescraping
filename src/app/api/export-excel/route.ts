@@ -10,12 +10,10 @@ export async function GET(req: NextRequest) {
   const ciudad = searchParams.get('ciudad');
   const titularidad = searchParams.get('titularidad');
 
-  // Construir filtro dinámico para scrap_post
   const where: any = {};
   if (desde && hasta) {
     const desdeDate = new Date(desde);
     const hastaDate = new Date(hasta);
-    // Incluir todo el día 'hasta'
     hastaDate.setHours(23,59,59,999);
     where.created_at = { gte: desdeDate, lte: hastaDate };
   } else if (desde) {
@@ -33,10 +31,8 @@ export async function GET(req: NextRequest) {
     where.titularidad = { equals: titularidad, mode: 'insensitive' };
   }
 
-  // Obtener datos filtrados
   const posts = await prisma.scrap_post.findMany({ where });
 
-  // Construir filtro dinámico para sin_publicacion
   const whereSin: any = {};
   if (desde && hasta) {
     const desdeDate = new Date(desde);
