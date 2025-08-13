@@ -12,12 +12,12 @@ export async function GET(req: NextRequest) {
     let gte: Date | undefined;
     let lte: Date | undefined;
 
-    if (desde) gte = new Date(desde);
-    if (hasta) {
-      const end = new Date(hasta);
-      end.setHours(23, 59, 59, 999);
-      lte = end;
-    }
+    // Interpretar fechas como días completos en America/La_Paz (UTC-4)
+    const toLaPazStart = (d: string) => new Date(`${d}T00:00:00-04:00`);
+    const toLaPazEnd = (d: string) => new Date(`${d}T23:59:59.999-04:00`);
+
+    if (desde) gte = toLaPazStart(desde);
+    if (hasta) lte = toLaPazEnd(hasta);
 
     const where: any = {};
     if (gte || lte) {

@@ -1,9 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { DateRangePicker } from "@/components/DateRangePicker";
-import { BoletinDownloader } from "@/components/BoletinDownloader";
 
 import type { Post } from "@/types/Post";
 
@@ -59,75 +57,102 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
   "PANDO"
 ];
 
-  // Filtrar posts según los filtros
+  // Helpers de fecha: normalizar a día YYYY-MM-DD en America/La_Paz (-04:00)
+  const ymdInLaPaz = (date: Date) => {
+    const laPaz = new Date(date.getTime() - 4 * 60 * 60 * 1000);
+    const y = laPaz.getUTCFullYear();
+    const m = String(laPaz.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(laPaz.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  // Filtrar posts según los filtros (comparando por día en La Paz)
   const filteredPosts = posts.filter(post => {
-    // Filtrar por titularidad
     if (selectedTitularidad && post.titularidad !== selectedTitularidad) return false;
-    // Filtrar por departamento
     if (selectedDepartamento && post.departamento !== selectedDepartamento) return false;
-    // Filtrar por fechas
-    if (startDate && (!post.fechapublicacion || post.fechapublicacion < startDate)) return false;
-    if (endDate && (!post.fechapublicacion || post.fechapublicacion > endDate)) return false;
+    const ymd = post.fechapublicacion ? ymdInLaPaz(new Date(post.fechapublicacion as any)) : "";
+    if (startDate && (!ymd || ymd < startDate)) return false;
+    if (endDate && (!ymd || ymd > endDate)) return false;
     return true;
   });
+
+  const resetFilters = () => {
+    const d = defaultDate();
+    setStartDate(d);
+    setEndDate(d);
+    setSelectedTitularidad("");
+    setSelectedDepartamento("");
+  };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">Descargar Excel</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md w-full">
+      <DialogContent className="max-w-xl w-full">
         <DialogHeader>
           <DialogTitle>Descargar Excel</DialogTitle>
+          <DialogDescription>
+            Exporta un archivo .xlsx con publicaciones filtradas por titularidad, departamento y rango de fechas.
+          </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
-          <div className="space-y-2">
-            <label className="font-medium block">Titularidad</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={selectedTitularidad}
-              onChange={e => setSelectedTitularidad(e.target.value)}
-            >
-              <option value="">Todas</option>
-              {titularidades.map((tit: string) => (
-                <option key={tit} value={tit}>{tit}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="font-medium block">Departamento</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={selectedDepartamento}
-              onChange={e => setSelectedDepartamento(e.target.value)}
-            >
-              <option value="">Todos</option>
-              {departamentos.map(dep => (
-                <option key={dep} value={dep}>{dep}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="font-medium block">Desde</label>
-              <input
-                className="w-full border rounded px-3 py-2"
-                type="date"
-                value={startDate}
-                max={endDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
+        <div className="py-2">
+          <div className="rounded-lg border bg-muted/30 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Titularidad</label>
+                <select
+                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedTitularidad}
+                  onChange={e => setSelectedTitularidad(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {titularidades.map((tit: string) => (
+                    <option key={tit} value={tit}>{tit}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">Filtra por cargo del candidato.</p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Departamento</label>
+                <select
+                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedDepartamento}
+                  onChange={e => setSelectedDepartamento(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {departamentos.map(dep => (
+                    <option key={dep} value={dep}>{dep}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">Selecciona un departamento o deja "Todos".</p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Desde</label>
+                <input
+                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="date"
+                  value={startDate}
+                  max={endDate}
+                  onChange={e => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Hasta</label>
+                <input
+                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="date"
+                  value={endDate}
+                  min={startDate}
+                  onChange={e => setEndDate(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <label className="font-medium block">Hasta</label>
-              <input
-                className="w-full border rounded px-3 py-2"
-                type="date"
-                value={endDate}
-                min={startDate}
-                onChange={e => setEndDate(e.target.value)}
-              />
-            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Las fechas se interpretan como días completos en zona America/La_Paz (UTC-4).</p>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">Coincidencias actuales: <span className="font-medium">{filteredPosts.length}</span> publicaciones</div>
+            <Button variant="ghost" onClick={resetFilters} disabled={descargando}>Limpiar filtros</Button>
           </div>
         </div>
         <DialogFooter>
@@ -174,4 +199,4 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
       </DialogContent>
     </Dialog>
   );
-};
+}

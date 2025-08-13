@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 interface CandidateCountItem {
   id: number;
@@ -27,6 +28,8 @@ export function CandidatePostCounts() {
   const [data, setData] = React.useState<CandidateCountItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
+  const [page, setPage] = React.useState<number>(1);
+  const [pageSize, setPageSize] = React.useState<number>(10);
 
   const titularidades = [
     "PRESIDENTE",
@@ -82,14 +85,25 @@ export function CandidatePostCounts() {
     setTitularidad("");
     setDepartamento("");
     // fetchData será invocado por el useEffect cuando cambien los estados
+    setPage(1);
   }, []);
 
+  // Reiniciar a página 1 cuando cambie el dataset por filtros/fechas
+  React.useEffect(() => {
+    setPage(1);
+  }, [desde, hasta, titularidad, departamento]);
+
+  // Cambiar tamaño de página reinicia a la primera
+  React.useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
+
   return (
-    <Card className="w-full max-w-5xl mx-auto mt-6 border-blue-100">
+    <Card className="w-full mt-6 border-blue-100 mb-6">
       <CardHeader>
         <CardTitle className="text-blue-700">Actividad por candidato</CardTitle>
         <CardDescription>
-          Visualiza la cantidad total de publicaciones por candidato en el rango seleccionado.
+          Visualiza la cantidad total de me gustas y publicaciones para cada candidato en el rango seleccionado.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -154,39 +168,100 @@ export function CandidatePostCounts() {
         ) : null}
 
         <div className="overflow-x-auto">
+          <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[260px]">Candidato</TableHead>
-                <TableHead className="min-w-[160px]">Titularidad</TableHead>
-                <TableHead className="min-w-[140px]">Departamento</TableHead>
-                <TableHead className="text-right min-w-[120px]">Likes</TableHead>
-                <TableHead className="text-right min-w-[120px]">Total posts</TableHead>
+                <TableHead className="w-[64px] text-center font-bold ">N°</TableHead>
+                <TableHead className="min-w-[260px] font-bold">Candidato</TableHead>
+                <TableHead className="min-w-[160px] font-bold">Titularidad</TableHead>
+                <TableHead className="min-w-[140px] font-bold">Departamento</TableHead>
+                <TableHead className="text-right min-w-[120px] font-bold">Likes</TableHead>
+                <TableHead className="text-right min-w-[120px] font-bold">Total posts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">Cargando...</TableCell>
+                  <TableCell colSpan={6} className="text-center py-4">Cargando...</TableCell>
                 </TableRow>
               ) : data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">Sin resultados</TableCell>
+                  <TableCell colSpan={6} className="text-center py-4">Sin resultados</TableCell>
                 </TableRow>
               ) : (
-                data.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.nombre_completo}</TableCell>
-                    <TableCell>{row.titularidad}</TableCell>
-                    <TableCell>{row.departamento}</TableCell>
-                    <TableCell className="text-right">{row.total_likes}</TableCell>
-                    <TableCell className="text-right font-semibold">{row.total_posts}</TableCell>
-                  </TableRow>
-                ))
+                (() => {
+                  const total = data.length;
+                  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+                  const safePage = Math.min(page, totalPages);
+                  const start = (safePage - 1) * pageSize;
+                  const end = start + pageSize;
+                  const pageRows = data.slice(start, end);
+                  return pageRows.map((row, idx) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="text-center">{start + idx + 1}</TableCell>
+                      <TableCell className="font-medium">{row.nombre_completo}</TableCell>
+                      <TableCell>{row.titularidad}</TableCell>
+                      <TableCell>{row.departamento}</TableCell>
+                      <TableCell className="text-right">{row.total_likes}</TableCell>
+                      <TableCell className="text-right font-semibold">{row.total_posts}</TableCell>
+                    </TableRow>
+                  ));
+                })()
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
+
+        {/* Controles de paginación */}
+        {data.length > 0 && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Filas por página</label>
+              <select
+                className="border rounded px-2 py-1"
+                value={pageSize}
+                onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Mostrando {Math.min((page - 1) * pageSize + 1, data.length)}–
+              {Math.min(page * pageSize, data.length)} de {data.length}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || loading}
+                aria-label="Anterior"
+              >
+                ←
+              </Button>
+              <span className="text-sm">
+                Página {page} de {Math.max(1, Math.ceil(data.length / pageSize))}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => {
+                  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+                  return Math.min(totalPages, p + 1);
+                })}
+                disabled={page >= Math.ceil(data.length / pageSize) || loading}
+                aria-label="Siguiente"
+              >
+                →
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

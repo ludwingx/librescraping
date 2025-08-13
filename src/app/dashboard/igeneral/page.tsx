@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface PostGeneral {
   candidatoid: string;
@@ -337,47 +338,49 @@ export default function Page() {
           );
         })}
         {/* Tabla de usuarios sin actividad RRSS */}
-        <div className="container mx-auto py-8">
+        <div className="w-full py-8">
           <h2 className="text-xl font-bold mb-2">Usuarios sin actividad en RRSS</h2>
-          <div>
-            <Table >
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="px-2 py-2">Candidato</TableHead>
-                  <TableHead className="px-2 py-2">Titularidad</TableHead>
-                  <TableHead className="px-2 py-2">Departamento</TableHead>
-                  <TableHead className="px-2 py-2">Red Social</TableHead>
-                  <TableHead className="px-2 py-2">Fecha Scrap</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sinActividadRegistros.length === 0 ? (
+          <div className="overflow-x-auto">
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      No hay usuarios sin actividad en RRSS
-                    </TableCell>
+                    <TableHead className="px-2 py-2">Candidato</TableHead>
+                    <TableHead className="px-2 py-2">Titularidad</TableHead>
+                    <TableHead className="px-2 py-2">Departamento</TableHead>
+                    <TableHead className="px-2 py-2">Red Social</TableHead>
+                    <TableHead className="px-2 py-2">Fecha Scrap</TableHead>
                   </TableRow>
-                ) : (
-                  sinActividadRegistros.map((reg, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="px-2 py-2">{reg.candidato}</TableCell>
-                      <TableCell className="px-2 py-2">{reg.titularidad}</TableCell>
-                      <TableCell className="px-2 py-2">{reg.departamento}</TableCell>
-                      <TableCell
-                        className={`px-2 py-2 text-center font-bold 
+                </TableHeader>
+                <TableBody>
+                  {sinActividadRegistros.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No hay usuarios sin actividad en RRSS
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    sinActividadRegistros.map((reg, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="px-2 py-2">{reg.candidato}</TableCell>
+                        <TableCell className="px-2 py-2">{reg.titularidad}</TableCell>
+                        <TableCell className="px-2 py-2">{reg.departamento}</TableCell>
+                        <TableCell
+                          className={`px-2 py-2 text-center font-bold 
     ${reg.redsocial?.toLowerCase() === 'facebook' ? 'bg-blue-600 text-white' : ''}
     ${reg.redsocial?.toLowerCase() === 'instagram' ? 'bg-pink-500 text-white' : ''}
     ${reg.redsocial?.toLowerCase() === 'tiktok' ? 'bg-black text-white' : ''}
   `}
-                      >
-                        {reg.redsocial}
-                      </TableCell>
-                      <TableCell className="px-2 py-2">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                        >
+                          {reg.redsocial}
+                        </TableCell>
+                        <TableCell className="px-2 py-2">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </div>
