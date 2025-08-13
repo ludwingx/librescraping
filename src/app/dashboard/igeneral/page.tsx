@@ -39,7 +39,7 @@ interface PostGeneral {
 
 export default function Page() {
   // Estado para controlar qué departamentos están expandidos
-  const [openRows, setOpenRows] = useState<{[key:string]: boolean}>({});
+  const [openRows, setOpenRows] = useState<{ [key: string]: boolean }>({});
   // Filtros de fecha
   const [desde, setDesde] = useState(() => {
     const hoy = new Date();
@@ -90,7 +90,7 @@ export default function Page() {
 
   return (
     <>
-   <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <div className="flex items-center justify-between w-full gap-2 px-4">
           <div className="flex items-center gap-2 w-full">
             <SidebarTrigger className="-ml-1" />
@@ -174,9 +174,9 @@ export default function Page() {
               </div>
               <div className="w-full overflow-x-auto p-2">
                 <div className="overflow-x-auto">
-                  <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
+                  <Table className="w-full min-w-[700px] sm:min-w-[1050px]">
                     <TableHeader>
-                      <TableRow className="bg-gray-100">
+                      <TableRow>
                         <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
                         <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
                         <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Me gusta</TableHead>
@@ -197,7 +197,7 @@ export default function Page() {
                         </TableRow>
                       ) : (
                         rowsToShow.map((post: PostGeneral, idx: number) => (
-                          <TableRow key={`${titularidad}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                          <TableRow key={`${titularidad}-${post.candidatoid}-${idx}`}>
                             <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
                               <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
                               <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
@@ -207,7 +207,15 @@ export default function Page() {
                             <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
-                            <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableHead>
+                            <TableCell
+                              className={`px-1.5 py-1.5 w-[120px] hidden lg:table-cell text-center font-bold 
+    ${post.redsocial === 'Facebook' ? 'bg-blue-600 text-white' : ''}
+    ${post.redsocial === 'Instagram' ? 'bg-pink-500 text-white' : ''}
+    ${post.redsocial === 'TikTok' ? 'bg-black text-white' : ''}
+  `}
+                            >
+                              {post.redsocial}
+                            </TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
                               <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
@@ -258,9 +266,9 @@ export default function Page() {
               </div>
               <div className="w-full overflow-x-auto p-2">
                 <div className="overflow-x-auto">
-                  <Table className="w-full min-w-[700px] sm:min-w-[1050px] border border-gray-200 rounded-lg bg-white text-xs">
+                  <Table className="w-full min-w-[700px] sm:min-w-[1050px]">
                     <TableHeader>
-                      <TableRow className="bg-gray-100">
+                      <TableRow>
                         <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
                         <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
                         <TableHead className="px-1.5 py-1.5 w-[100px] text-center">Departamento</TableHead>
@@ -282,7 +290,7 @@ export default function Page() {
                         </TableRow>
                       ) : (
                         rowsToShow.map((post: PostGeneral, idx: number) => (
-                          <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                          <TableRow key={`${dep}-${post.candidatoid}-${idx}`}>
                             <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
                               <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
                               <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
@@ -293,7 +301,15 @@ export default function Page() {
                             <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">{post.redsocial}</TableCell>
+                            <TableCell
+                              className={`px-1.5 py-1.5 w-[120px] hidden lg:table-cell text-center font-bold 
+    ${post.redsocial === 'Facebook' ? 'bg-blue-600 text-white' : ''}
+    ${post.redsocial === 'Instagram' ? 'bg-pink-500 text-white' : ''}
+    ${post.redsocial === 'TikTok' ? 'bg-black text-white' : ''}
+  `}
+                            >
+                              {post.redsocial}
+                            </TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
                             <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
                               <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
@@ -323,29 +339,45 @@ export default function Page() {
         {/* Tabla de usuarios sin actividad RRSS */}
         <div className="container mx-auto py-8">
           <h2 className="text-xl font-bold mb-2">Usuarios sin actividad en RRSS</h2>
-          <div className="overflow-x-auto rounded shadow bg-white">
-            <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm text-left">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-2 py-2">Candidato</th>
-                  <th className="px-2 py-2">Titularidad</th>
-                  <th className="px-2 py-2">Departamento</th>
-                  <th className="px-2 py-2">Red Social</th>
-                  <th className="px-2 py-2">Fecha Scrap</th>
-                </tr>
-              </thead>
-              <tbody style={{ minHeight: '300px' }}>
-                {sinActividadRegistros.map((reg, idx) => (
-                  <tr key={idx} className="bg-white border-b">
-                    <td className="px-2 py-2 border">{reg.candidato}</td>
-                    <td className="px-2 py-2 border">{reg.titularidad}</td>
-                    <td className="px-2 py-2 border">{reg.departamento}</td>
-                    <td className="px-2 py-2 border">{reg.redsocial}</td>
-                    <td className="px-2 py-2 border">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <Table >
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="px-2 py-2">Candidato</TableHead>
+                  <TableHead className="px-2 py-2">Titularidad</TableHead>
+                  <TableHead className="px-2 py-2">Departamento</TableHead>
+                  <TableHead className="px-2 py-2">Red Social</TableHead>
+                  <TableHead className="px-2 py-2">Fecha Scrap</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sinActividadRegistros.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      No hay usuarios sin actividad en RRSS
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sinActividadRegistros.map((reg, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="px-2 py-2">{reg.candidato}</TableCell>
+                      <TableCell className="px-2 py-2">{reg.titularidad}</TableCell>
+                      <TableCell className="px-2 py-2">{reg.departamento}</TableCell>
+                      <TableCell
+                        className={`px-2 py-2 text-center font-bold 
+    ${reg.redsocial?.toLowerCase() === 'facebook' ? 'bg-blue-600 text-white' : ''}
+    ${reg.redsocial?.toLowerCase() === 'instagram' ? 'bg-pink-500 text-white' : ''}
+    ${reg.redsocial?.toLowerCase() === 'tiktok' ? 'bg-black text-white' : ''}
+  `}
+                      >
+                        {reg.redsocial}
+                      </TableCell>
+                      <TableCell className="px-2 py-2">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>

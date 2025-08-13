@@ -17,8 +17,17 @@ const titularidades = [
   "DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL"
 ];
 
+
 export default function ExcelDownloader() {
-  const [fecha, setFecha] = useState("");
+  // Fecha por defecto: ayer (zona local del navegador)
+  const defaultDate = () => {
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
+  };
+  const [desde, setDesde] = useState<string>(() => defaultDate());
+  const [hasta, setHasta] = useState<string>(() => defaultDate());
   const [ciudad, setCiudad] = useState("");
   const [titularidad, setTitularidad] = useState("");
   const [descargando, setDescargando] = useState(false);
@@ -26,7 +35,8 @@ export default function ExcelDownloader() {
   const handleDownload = async () => {
     setDescargando(true);
     const params = new URLSearchParams();
-    if (fecha) params.append("fecha", fecha);
+    if (desde) params.append("desde", desde);
+    if (hasta) params.append("hasta", hasta);
     if (ciudad) params.append("ciudad", ciudad);
     if (titularidad) params.append("titularidad", titularidad);
     const url = `/api/export-excel?${params.toString()}`;
@@ -35,9 +45,10 @@ export default function ExcelDownloader() {
       const blob = await res.blob();
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      const hoy = new Date();
-      let fechaParaNombre = fecha ? fecha : hoy.toISOString().slice(0, 10); 
-      const parts = [fechaParaNombre];
+      const parts: string[] = [];
+      if (desde && hasta) {
+        parts.push(`${desde}_a_${hasta}`);
+      }
       if (ciudad) parts.push(ciudad.replace(/\s+/g, "_"));
       if (titularidad) parts.push(titularidad.replace(/\s+/g, "_"));
       const nombreArchivo = "reporte-" + parts.join("-") + ".xlsx";
@@ -59,8 +70,24 @@ export default function ExcelDownloader() {
       
       
       <div className="flex flex-col gap-2 w-full md:w-auto">
-        <label className="text-sm font-medium">Fecha</label>
-        <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} className="border rounded px-2 py-1" />
+        <label className="text-sm font-medium">Desde</label>
+        <input
+          type="date"
+          value={desde}
+          max={hasta}
+          onChange={e => setDesde(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+      </div>
+      <div className="flex flex-col gap-2 w-full md:w-auto">
+        <label className="text-sm font-medium">Hasta</label>
+        <input
+          type="date"
+          value={hasta}
+          min={desde}
+          onChange={e => setHasta(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
       </div>
       <div className="flex flex-col gap-2 w-full md:w-auto">
         <label className="text-sm font-medium">Departamento</label>

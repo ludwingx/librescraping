@@ -33,8 +33,15 @@ interface ExcelDownloadModalProps {
 }
 
 export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, sinActividad = [], departamentoNombre }) => {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Fecha por defecto: ayer (zona local del navegador)
+  const defaultDate = () => {
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    return ayer.toISOString().slice(0, 10);
+  };
+  const [startDate, setStartDate] = useState<string>(() => defaultDate());
+  const [endDate, setEndDate] = useState<string>(() => defaultDate());
   const [selectedTitularidad, setSelectedTitularidad] = useState("");
   const [selectedDepartamento, setSelectedDepartamento] = useState("");
   const [descargando, setDescargando] = useState(false);
@@ -107,6 +114,7 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
                 className="w-full border rounded px-3 py-2"
                 type="date"
                 value={startDate}
+                max={endDate}
                 onChange={e => setStartDate(e.target.value)}
               />
             </div>
@@ -116,6 +124,7 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
                 className="w-full border rounded px-3 py-2"
                 type="date"
                 value={endDate}
+                min={startDate}
                 onChange={e => setEndDate(e.target.value)}
               />
             </div>

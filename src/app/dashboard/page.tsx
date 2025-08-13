@@ -9,6 +9,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import prisma from "@/lib/prisma";
 
 import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
+import { CandidatePostCounts } from "@/components/CandidatePostCounts";
 import { QuickActionCard } from "@/components/ui/quick-action-card";
 import { BarChart3, Download, Users } from "lucide-react";
 import {
@@ -96,6 +97,8 @@ export default async function Page() {
                 />
               </CardContent>
             </Card>
+            {/* Tabla de actividad por candidato */}
+            <CandidatePostCounts />
             </div>
 
             
