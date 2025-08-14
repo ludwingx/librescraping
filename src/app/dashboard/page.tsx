@@ -166,7 +166,7 @@ export default async function Page() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-blue-700">{avgDaily7d.toFixed(1)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Rango: {start7Str} – {yStr}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Rango: {start7Str} al {yStr}</p>
                 </CardContent>
               </Card>
 

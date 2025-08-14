@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
       if (gte) (where.fechapublicacion as any).gte = gte;
       if (lte) (where.fechapublicacion as any).lte = lte;
     }
+    // Evitar filas con candidatoid nulo o inválido (causan P2032 en prod)
+    where.candidatoid = { gt: 0 };
     if (titularidad) {
       where.titularidad = titularidad;
     }
