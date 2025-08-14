@@ -50,7 +50,7 @@ export default async function Page() {
 
   const posts = (
     await prisma.scrap_post.findMany({
-      where: { redsocial: "Facebook" },
+      where: { redsocial: "Facebook", candidatoid: { gt: 0 } },
       orderBy: { fechapublicacion: "desc" },
       take: 20,
     })
@@ -71,6 +71,7 @@ export default async function Page() {
   const activeYesterdayDistinct = await prisma.scrap_post.findMany({
     where: {
       fechapublicacion: { gte: yStart, lte: yEnd },
+      candidatoid: { gt: 0 },
     },
     distinct: ["candidatoid"],
     select: { candidatoid: true },
