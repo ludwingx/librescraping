@@ -31,6 +31,20 @@ function ymdInLaPaz(dateUTC: Date): string {
   return shifted.toISOString().slice(0, 10);
 }
 
+// Normaliza URLs para reducir duplicados: quita protocolo, www, query, fragmento, slash final
+function normalizeUrl(url?: string | null): string {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    const path = u.pathname.replace(/\/+$/g, ""); // quitar slashes finales
+    return `${host}${path}`;
+  } catch {
+    // fallback simple si no es una URL válida
+    return String(url).toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[?#]/)[0].replace(/\/+$/g, "");
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const desde = parseDateYMD(searchParams.get("desde") || "");
@@ -49,29 +63,40 @@ export async function GET(request: Request) {
 
     const posts = await prisma.scrap_post.findMany({
       where: {
-        fechapublicacion: {
+        created_at: {
           gte: startUTC,
           lte: endUTC,
         },
+        // Evita filas con candidatoid nulo/0 que inflan conteos y causan errores en prod
+        candidatoid: { gt: 0 },
       },
-      select: { id: true, fechapublicacion: true },
-      orderBy: { fechapublicacion: "asc" },
+      select: { id: true, created_at: true, posturl: true },
+      orderBy: { created_at: "asc" },
     });
 
-    // Build full date map
+    // Construir el mapa de fechas usando día calendario en America/La_Paz
     const result: { date: string; count: number }[] = [];
-    const startLocal = new Date(desde + "T00:00:00");
-    const endLocal = new Date(hasta + "T00:00:00");
-    for (let d = new Date(startLocal); d <= endLocal; d = addDays(d, 1)) {
-      result.push({ date: d.toISOString().slice(0, 10), count: 0 });
+    // Helper para avanzar un día en La Paz y obtener YYYY-MM-DD
+    const nextYmd = (ymd: string) => ymdInLaPaz(addDays(localStartUTC(ymd), 1));
+    let cursor = desde;
+    while (true) {
+      result.push({ date: cursor, count: 0 });
+      if (cursor === hasta) break;
+      cursor = nextYmd(cursor);
     }
 
-    // Aggregate
+    // Aggregate con deduplicación por URL de post dentro del mismo día (La Paz)
     const indexByDate = new Map(result.map((r, i) => [r.date, i]));
+    const seen = new Set<string>(); // clave = `${date}::${normalizedUrl}`
     for (const p of posts) {
-      const key = ymdInLaPaz(p.fechapublicacion as Date);
-      const idx = indexByDate.get(key);
-      if (idx !== undefined) result[idx].count += 1;
+      const day = ymdInLaPaz(p.created_at as Date);
+      const idx = indexByDate.get(day);
+      if (idx === undefined) continue;
+      const normalized = normalizeUrl((p as any).posturl);
+      const k = `${day}::${normalized}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      result[idx].count += 1;
     }
 
     return NextResponse.json({ data: result });

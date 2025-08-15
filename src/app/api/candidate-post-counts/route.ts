@@ -15,12 +15,35 @@ export async function GET(req: NextRequest) {
     // Interpretar fechas como días completos en America/La_Paz (UTC-4)
     const toLaPazStart = (d: string) => new Date(`${d}T00:00:00-04:00`);
     const toLaPazEnd = (d: string) => new Date(`${d}T23:59:59.999-04:00`);
+    // Obtener el fin del día de AYER en America/La_Paz
+    const getYesterdayLaPazEnd = () => {
+      const now = new Date();
+      // Convertir ahora a zona La Paz restando 4 horas
+      const laPazNow = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+      // Tomar componentes en UTC (equivalen a componentes de La Paz tras el corrimiento)
+      const y = laPazNow.getUTCFullYear();
+      const m = laPazNow.getUTCMonth();
+      const d = laPazNow.getUTCDate();
+      // Construir la fecha de hoy (La Paz) en UTC y restar 1 día para obtener ayer
+      const todayLaPazStartUTC = Date.UTC(y, m, d, 0, 0, 0, 0);
+      const yesterdayLaPazDate = new Date(todayLaPazStartUTC - 24 * 60 * 60 * 1000);
+      const yyyy = yesterdayLaPazDate.getUTCFullYear();
+      const mm = String(yesterdayLaPazDate.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(yesterdayLaPazDate.getUTCDate()).padStart(2, "0");
+      return toLaPazEnd(`${yyyy}-${mm}-${dd}`);
+    };
 
     if (desde) gte = toLaPazStart(desde);
     if (hasta) lte = toLaPazEnd(hasta);
+    // Limitar el máximo al día de AYER en La Paz
+    const yesterdayEnd = getYesterdayLaPazEnd();
+    if (!lte || lte > yesterdayEnd) {
+      lte = yesterdayEnd;
+    }
 
     const where: any = {};
     if (gte || lte) {
+      // Usar fechapublicacion para alinear con la fecha visual del usuario (America/La_Paz)
       where.fechapublicacion = {} as any;
       if (gte) (where.fechapublicacion as any).gte = gte;
       if (lte) (where.fechapublicacion as any).lte = lte;
