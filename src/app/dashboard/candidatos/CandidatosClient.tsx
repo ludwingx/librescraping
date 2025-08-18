@@ -10,6 +10,17 @@ import { Separator } from "@radix-ui/react-separator";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
+const titularidades = [
+  "PRESIDENTE",
+  "VICEPRESIDENTE",
+  "SENADOR",
+  "DIPUTADO PLURINOMINAL",
+  "DIPUTADO UNINOMINAL URBANO",
+  "DIPUTADO UNINOMINAL RURAL",
+  "DIPUTADO SUPRAESTATAL",
+  "DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL",
+];
+
 export default function CandidatosClient() {
   const [candidatos, setCandidatos] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -179,10 +190,19 @@ export default function CandidatosClient() {
                 <TableCell colSpan={8} className="text-center py-8">Sin datos</TableCell>
               </TableRow>
             ) : (
-              candidatos.map((candidato) => (
+              [...candidatos].sort((a, b) => {
+                const titA = titularidades.indexOf((a.titularidad || '').toUpperCase());
+                const titB = titularidades.indexOf((b.titularidad || '').toUpperCase());
+                if (titA !== titB) return titA - titB;
+                const depA = (["PRESIDENTE", "VICEPRESIDENTE"].includes((a.titularidad || '').toUpperCase()) ? "PAIS" : (a.departamento || '').toUpperCase());
+                const depB = (["PRESIDENTE", "VICEPRESIDENTE"].includes((b.titularidad || '').toUpperCase()) ? "PAIS" : (b.departamento || '').toUpperCase());
+                if (depA < depB) return -1;
+                if (depA > depB) return 1;
+                return (a.nombre_completo || '').localeCompare(b.nombre_completo || '');
+              }).map((candidato) => (
                 <TableRow key={candidato.id}>
                   <TableCell className="px-1 py-1 text-center">{candidato.id}</TableCell>
-                  <TableCell className="px-1 py-1 truncate max-w-[100px]">{candidato.departamento}</TableCell>
+                  <TableCell className="px-1 py-1 truncate max-w-[100px]">{["PRESIDENTE", "VICEPRESIDENTE"].includes((candidato.titularidad || '').toUpperCase()) ? "PAIS" : candidato.departamento}</TableCell>
                   <TableCell className="px-1 py-1 truncate max-w-[120px]">{candidato.titularidad}</TableCell>
                   <TableCell className="px-1 py-1 truncate max-w-[140px]">{candidato.nombre_completo}</TableCell>
                   <TableCell className="px-1 py-1 max-w-[120px] truncate">
@@ -214,3 +234,4 @@ export default function CandidatosClient() {
    </>
   );
 }
+

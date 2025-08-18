@@ -55,22 +55,23 @@ export default function Page() {
     return ayer.toISOString().slice(0, 10);
   });
   const [allPosts, setAllPosts] = useState<PostGeneral[]>([]);
-  const [sinActividadRegistros, setSinActividadRegistros] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/general-posts?desde=${desde}&hasta=${hasta}`);
-        const data = await res.json();
-        console.log("[IGENERAL] Respuesta del backend:", data);
-        setAllPosts(data.allPosts || []);
-        setSinActividadRegistros(data.sinActividadRegistros || []);
+        // Obtener publicaciones generales como antes
+        const resPosts = await fetch(`/api/general-posts?desde=${desde}&hasta=${hasta}`);
+        const dataPosts = await resPosts.json();
+        setAllPosts(dataPosts.allPosts || []);
+
+
       } catch (err) {
         console.error("[IGENERAL] Error en fetchPosts:", err);
         setAllPosts([]);
-        setSinActividadRegistros([]);
+        ([]);
       }
       setLoading(false);
     };
@@ -108,8 +109,20 @@ export default function Page() {
               </BreadcrumbList>
             </Breadcrumb>
             <div className="flex items-center gap-2 ml-auto pr-2">
-              <img src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75" alt="Libre-Scraping Logo 1" width={40} height={40} className="w-10 h-10 object-contain" />
-              <img src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75" alt="Libre-Scraping Logo 2" width={40} height={40} className="w-10 h-10 object-contain" />
+              <img
+                className="w-35 h-10 object-contain"
+                src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75"
+                alt="Libre-Scraping Logo 1"
+                width={120}
+                height={40}
+              />
+              <img
+                className="w-22 h-10 object-contain"
+                src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75"
+                alt="Libre-Scraping Logo 2"
+                width={80}
+                height={40}
+              />
             </div>
           </div>
         </div>
@@ -135,7 +148,6 @@ export default function Page() {
                 fotoperfil: post.fotoperfil,
                 perfilurl: post.perfilurl,
               }))}
-              sinActividad={sinActividadRegistros}
               departamentoNombre={"INFORME GENERAL"}
             />
           </div>
@@ -337,52 +349,7 @@ export default function Page() {
             </div>
           );
         })}
-        {/* Tabla de usuarios sin actividad RRSS */}
-        <div className="w-full py-8">
-          <h2 className="text-xl font-bold mb-2">Usuarios sin actividad en RRSS</h2>
-          <div className="overflow-x-auto">
-            <div className="overflow-hidden rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="px-2 py-2">Candidato</TableHead>
-                    <TableHead className="px-2 py-2">Titularidad</TableHead>
-                    <TableHead className="px-2 py-2">Departamento</TableHead>
-                    <TableHead className="px-2 py-2">Red Social</TableHead>
-                    <TableHead className="px-2 py-2">Fecha Scrap</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sinActividadRegistros.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                        No hay usuarios sin actividad en RRSS
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    sinActividadRegistros.map((reg, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="px-2 py-2">{reg.candidato}</TableCell>
-                        <TableCell className="px-2 py-2">{reg.titularidad}</TableCell>
-                        <TableCell className="px-2 py-2">{reg.departamento}</TableCell>
-                        <TableCell
-                          className={`px-2 py-2 text-center font-bold 
-    ${reg.redsocial?.toLowerCase() === 'facebook' ? 'bg-blue-600 text-white' : ''}
-    ${reg.redsocial?.toLowerCase() === 'instagram' ? 'bg-pink-500 text-white' : ''}
-    ${reg.redsocial?.toLowerCase() === 'tiktok' ? 'bg-black text-white' : ''}
-  `}
-                        >
-                          {reg.redsocial}
-                        </TableCell>
-                        <TableCell className="px-2 py-2">{reg.fecha_scrap ? new Date(reg.fecha_scrap).toLocaleString('es-BO', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </div>
+
       </div>
     </>
   );

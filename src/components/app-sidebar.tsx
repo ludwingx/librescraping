@@ -65,6 +65,11 @@ const data = {
       url: "/dashboard/candidatos",
       icon: Users,
     },
+    {
+      title: "Candidatos sin actividad",
+      url: "/dashboard/sinpublicacion",
+      icon: Users,
+    },
   ],
 }
 
