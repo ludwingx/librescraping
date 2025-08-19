@@ -9,7 +9,9 @@ export async function generarBoletinPDF({
   sinActividad = [],
   fechaHoy,
   logoUrl = "/logos/librePDF.png", // Cambia aquí la URL de tu logo
-  departamentoNombre
+  departamentoNombre,
+  desde,
+  hasta
 }: {
   posts: Post[];
   titularesDestacados?: string[];
@@ -23,6 +25,8 @@ export async function generarBoletinPDF({
   fechaHoy: string;
   logoUrl?: string;
   departamentoNombre: string;
+  desde?: string;
+  hasta?: string;
 }) {
   const doc = new jsPDF();
   let y = 8;
@@ -46,7 +50,19 @@ export async function generarBoletinPDF({
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(15);
-  doc.text(`BOLETIN ${fechaHoy} DE REDES SOCIALES - ${departamentoNombre}`, 105, y + 1, { align: "center" });
+  let rangoTexto = '';
+  if (desde && hasta) {
+    if (desde === hasta) {
+      rangoTexto = ` (${formatearFecha(desde)})`;
+    } else {
+      rangoTexto = ` (${formatearFecha(desde)} a ${formatearFecha(hasta)})`;
+    }
+  } else if (desde) {
+    rangoTexto = ` (desde ${formatearFecha(desde)})`;
+  } else if (hasta) {
+    rangoTexto = ` (hasta ${formatearFecha(hasta)})`;
+  }
+  doc.text(`BOLETIN${rangoTexto} DE REDES SOCIALES - ${departamentoNombre}`, 105, y + 1, { align: "center" });
   y += 13;
 
   // volver a texto normal
@@ -107,12 +123,26 @@ export async function generarBoletinPDF({
   doc.setFontSize(12);
   doc.text(`Publicaciones en ${departamentoNombre}:`, 15, y);
   y += 8;
-  titularidades.filter(tit => tit !== "SIN ACTIVIDAD EN RRSS").forEach((tit) => {
-    doc.setFontSize(12);
-    doc.text(tit, 20, y);
-    y += 8;
-    const postsTit = posts.filter(p => (p.titularidad || "").toUpperCase() === tit);
+  const titularidadOrden = [
+    'PRESIDENTE',
+    'VICEPRESIDENTE',
+    'SENADOR',
+    'DIPUTADO PLURINOMINAL',
+    'DIPUTADO UNINOMINAL URBANO',
+    'DIPUTADO UNINOMINAL RURAL',
+    'DIPUTADO SUPRAESTATAL',
+    'DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL',
+    'OTRO'
+  ];
+  titularidadOrden.forEach((tit) => {
+    const postsTit = posts.filter(p =>
+      (p.titularidad || "").toUpperCase() === tit &&
+      (p.departamento || '').toUpperCase() !== 'PAIS'
+    );
     if (postsTit.length > 0) {
+      doc.setFontSize(12);
+      doc.text(tit, 20, y);
+      y += 8;
       postsTit.forEach(post => {
         doc.setFontSize(12);
         doc.text("Perfil: " + post.perfil + " | Red social: " + (post.redsocial || ""), 25, y);
@@ -137,17 +167,16 @@ export async function generarBoletinPDF({
         if (y > 270) { doc.addPage(); y = 20; }
       });
       y += 4;
-    } else {
-      doc.setFontSize(12);
-      doc.text("Sin publicaciones", 25, y);
-      y += 10;
     }
   });
 
   // Sin Actividad en RRSS
   if (sinActividad.length) {
-    // Filtrar solo el departamento actual
-    const sinActividadDepartamento = sinActividad.filter(item => (item.departamento || '').toUpperCase().includes(departamentoNombre.toUpperCase()));
+    // Incluir los que tienen el departamento actual o 'PAIS', igual que en la app
+    const sinActividadDepartamento = sinActividad.filter(item => {
+      const dep = (item.departamento || '').toUpperCase();
+      return dep === departamentoNombre.toUpperCase() || dep === 'PAIS';
+    });
 
     // Orden personalizado de titularidad
     const titularidadOrden = [
@@ -178,25 +207,31 @@ export async function generarBoletinPDF({
     y += 10;
     doc.setFontSize(12);
     // Encabezado tabla
-    const colX = [30, 85, 145]; // Nombre, Titularidad, Red Social
-    const colW = [50, 55, 45];  // Anchos máximos para recorte
-    doc.setFontSize(12);
-    doc.text("Nombre", colX[0], y);
-    doc.text("Titularidad", colX[1], y);
-    doc.text("Red Social", colX[2], y);
-    y += 7;
-    doc.setLineWidth(0.2);
+    const colX = [24, 90, 156]; // Más espacio para nombre y titularidad
+    const colW = [60, 60, 40];  // Anchos máximos para recorte
+    doc.setFontSize(13);
+    doc.setTextColor(40,40,40);
+    doc.text("Nombre", colX[0], y, { align: "left" });
+    doc.text("Titularidad", colX[1], y, { align: "right" });
+    y += 5;
+    doc.setLineWidth(0.4);
     doc.line(18, y, 190, y);
-    y += 3;
+    y += 9;
     // Filas
-    sinActividadDepartamento.forEach((item: { candidato: string; titularidad: string; redsocial: string; }) => {
+    sinActividadDepartamento.forEach((item: { candidato: string; titularidad: string; redsocial: string; }, idx: number) => {
       // Recortar cada campo si es necesario
       function crop(text: string, maxLen: number) {
         return text.length > maxLen ? text.slice(0, maxLen - 3) + '...' : text;
       }
-      doc.text(crop(item.candidato || '', 22), colX[0], y);
-      doc.text(crop(item.titularidad || '', 20), colX[1], y);
-      doc.text(crop(item.redsocial || '', 12), colX[2], y);
+      // Fondo alterno para filas
+      if (idx % 2 === 1) {
+        doc.setFillColor(245,245,245);
+        doc.rect(19, y-5, 170, 9, 'F');
+      }
+      doc.setFontSize(12);
+      doc.setTextColor(30,30,30);
+      doc.text(crop(item.candidato || '', 28), colX[0], y, { align: "left" });
+      doc.text(crop(item.titularidad || '', 22), colX[1], y, { align: "right" });
       // Línea horizontal por fila
       doc.setDrawColor(220,220,220);
       doc.line(18, y+2, 190, y+2);
@@ -205,7 +240,29 @@ export async function generarBoletinPDF({
     });
   }
 
-  doc.save(`boletin_${fechaHoy}.pdf`);
+  let nombreArchivo = `boletin`;
+  if (desde && hasta) {
+    if (desde === hasta) {
+      nombreArchivo += `_${formatearFecha(desde)}`;
+    } else {
+      nombreArchivo += `_${formatearFecha(desde)}_a_${formatearFecha(hasta)}`;
+    }
+  } else if (desde) {
+    nombreArchivo += `_desde_${formatearFecha(desde)}`;
+  } else if (hasta) {
+    nombreArchivo += `_hasta_${formatearFecha(hasta)}`;
+  }
+  nombreArchivo = nombreArchivo.replace(/\//g, '-'); // Evitar caracteres inválidos
+  doc.save(`${nombreArchivo}.pdf`);
+}
+
+function formatearFecha(fecha: string) {
+  // Forzar la fecha como local (zona -04:00) para evitar desfase
+  const d = new Date(fecha + 'T00:00:00-04:00');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
 }
 
 // Utilidad para convertir una imagen de URL a base64

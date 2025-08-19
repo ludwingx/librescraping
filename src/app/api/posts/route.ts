@@ -67,28 +67,25 @@ export async function GET(req: NextRequest) {
   // Sin actividad en RRSS
   // Ajuste: usar el campo correcto de fecha para sin_publicacion (ej: fecha_scrap)
   let sinActividadWhere: any = {
-    departamento: {
-      equals: departamento,
-      mode: 'insensitive',
-    },
+    OR: [
+      {
+        departamento: {
+          equals: departamento,
+          mode: 'insensitive',
+        }
+      },
+      {
+        departamento: {
+          equals: 'PAIS',
+          mode: 'insensitive',
+        }
+      }
+    ]
   };
-  if (fechaInicio && fechaFin) {
-    sinActividadWhere.fecha_scrap = {
-      gte: fechaInicio,
-      lte: fechaFin,
-    };
-  } else if (fechaInicio) {
-    sinActividadWhere.fecha_scrap = { gte: fechaInicio };
-  } else if (fechaFin) {
-    sinActividadWhere.fecha_scrap = { lte: fechaFin };
-  }
-  const sinActividadRegistros = await prisma.sin_publicacion.findMany({
-    where: sinActividadWhere,
-  });
 
+  // Eliminado el bloque de sinActividadRegistros y toda referencia a sin_publicacion
   return NextResponse.json({
     allPosts,
     postsNacionales,
-    sinActividadRegistros,
   });
 }

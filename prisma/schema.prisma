@@ -37,14 +37,7 @@ model scrap_post {
   titularidad   String
   created_at    DateTime  @default(now())
 }
-model sin_publicacion{
-  id Int @id @default(autoincrement())
-  redsocial String
-  departamento String
-  titularidad String
-  fecha_scrap DateTime @default(now())// fecha_scrap es como un created_at
-  candidato String
-}
+
 model candidatos {
   id                 Int          @id @default(autoincrement()) // id candidato
   departamento       String

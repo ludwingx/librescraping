@@ -12,7 +12,7 @@ interface SinActividadItem {
   redsocial: string;
 }
 
-export function BoletinDownloader({ posts, sinActividad = [], departamentoNombre }: { posts: Post[]; sinActividad?: SinActividadItem[]; departamentoNombre: string }) {
+export function BoletinDownloader({ posts, sinActividad = [], departamentoNombre, desde, hasta }: { posts: Post[]; sinActividad?: SinActividadItem[]; departamentoNombre: string; desde?: string; hasta?: string }) {
   const handleDownload = React.useCallback(() => {
     const destacados = ["Jorge Tuto Quiroga", "Juan Pablo Velazco"];
     const titularidades = [
@@ -34,7 +34,9 @@ export function BoletinDownloader({ posts, sinActividad = [], departamentoNombre
       titularidades,
       sinActividad,
       fechaHoy: fechaHoyStr,
-      departamentoNombre
+      departamentoNombre,
+      desde,
+      hasta
     });
   }, [posts, sinActividad, departamentoNombre]);
 

@@ -42,10 +42,9 @@ interface PostGeneral {
 
 interface SinActividadRegistro {
   id: number;
-  candidato: string;
+  nombre_completo: string;
   titularidad: string;
   departamento: string;
-  redsocial: string;
 }
 
 export default function DepartamentoPage() {
@@ -85,7 +84,6 @@ export default function DepartamentoPage() {
           `/api/posts?departamento=${departamentoApi}&desde=${desde}&hasta=${hasta}`
         );
         const data = await res.json();
-        console.log("Datos recibidos:", JSON.stringify(data, null, 2));
         setAllPosts(
           (data.allPosts || []).map((p: any) => ({
             ...p,
@@ -98,7 +96,12 @@ export default function DepartamentoPage() {
             fechapublicacion: p.fechapublicacion || "",
           }))
         );
-        setSinActividadRegistros(data.sinActividadRegistros || []);
+        // Fetch candidatos sin actividad en RRSS
+        const resSinActividad = await fetch(
+          `/api/candidatos-sin-posts?departamento=${departamentoApi}&desde=${desde}&hasta=${hasta}`
+        );
+        const dataSinActividad = await resSinActividad.json();
+        setSinActividadRegistros(dataSinActividad.sinActividadRegistros || []);
       } catch (err) {
         setAllPosts([]);
         setPostsNacionales([]);
@@ -239,8 +242,15 @@ const departamentos = [
           <div className="w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
             <BoletinDownloader
               posts={[...allPosts, ...postsNacionales]}
-              sinActividad={sinActividadRegistros}
+              sinActividad={sinActividadRegistros.map((r) => ({
+                candidato: r.nombre_completo,
+                titularidad: r.titularidad,
+                departamento: r.departamento,
+                redsocial: '' // No disponible en el endpoint, se deja vacío
+              }))}
               departamentoNombre={departamentoNombre}
+              desde={desde}
+              hasta={hasta}
             />
           </div>
         </div>
@@ -400,27 +410,36 @@ const departamentos = [
             ) : (
               <div className="w-full overflow-x-auto p-2">
                 <div className="overflow-x-auto">
-                  <Table className="w-full min-w-[300px] sm:min-w-[700px] border border-gray-200 rounded-lg bg-white text-xs">
+                  <Table className="w-full min-w-[320px] sm:min-w-[600px] border border-gray-200 rounded-lg bg-white text-xs">
                     <TableHeader>
                       <TableRow className="bg-gray-100">
-                        <TableHead className="px-1 py-1">Nombre</TableHead>
-                        <TableHead className="px-1 py-1">Red Social</TableHead>
+                        <TableHead className="px-1 py-1 min-w-[120px] max-w-[180px] truncate">Nombre</TableHead>
+                        <TableHead className="px-1 py-1 min-w-[100px] max-w-[160px] truncate">Titularidad</TableHead>
+                        <TableHead className="px-1 py-1 min-w-[80px] max-w-[120px] truncate">Departamento</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sinActividadRegistros.map((r: SinActividadRegistro) => (
-                        <TableRow
-                          key={r.id}
-                          className="odd:bg-white even:bg-gray-50"
-                        >
-                          <TableCell className="px-1 py-1">
-                            {r.candidato}
-                          </TableCell>
-                          <TableCell className="px-1 py-1">
-                            {r.redsocial}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {sinActividadRegistros
+                        .slice()
+                        .sort((a, b) =>
+                          titularidades.indexOf(a.titularidad.toUpperCase()) - titularidades.indexOf(b.titularidad.toUpperCase())
+                        )
+                        .map((r: SinActividadRegistro) => (
+                          <TableRow
+                            key={r.id}
+                            className="odd:bg-white even:bg-gray-50"
+                          >
+                            <TableCell className="px-1 py-1 min-w-[120px] max-w-[180px] whitespace-normal break-words truncate" title={r.nombre_completo}>
+                              {r.nombre_completo}
+                            </TableCell>
+                            <TableCell className="px-1 py-1 min-w-[100px] max-w-[160px] whitespace-normal break-words truncate" title={r.titularidad}>
+                              {r.titularidad}
+                            </TableCell>
+                            <TableCell className="px-1 py-1 min-w-[80px] max-w-[120px] whitespace-normal break-words truncate" title={r.departamento}>
+                              {r.departamento}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
