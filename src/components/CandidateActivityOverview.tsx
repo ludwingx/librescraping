@@ -2,9 +2,16 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 // Helpers para zona America/La_Paz (-04:00)
 function ymdInLaPaz(date: Date) {
@@ -23,8 +30,15 @@ function getYesterdayLaPazYMD() {
   return ymdInLaPaz(laPazYesterday);
 }
 
+// Nueva función para obtener la fecha de hoy en La Paz
+function getTodayLaPazYMD() {
+  const now = new Date();
+  const laPazNow = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  return ymdInLaPaz(laPazNow);
+}
+
 function computeRange(range: "90d" | "30d" | "7d") {
-  const end = getYesterdayLaPazYMD(); // hasta = ayer (La Paz)
+  const end = getTodayLaPazYMD(); // hasta = hoy (La Paz)
   // Construimos fechas ancladas a -04:00 para restar días correctamente
   const endLaPaz = new Date(`${end}T00:00:00-04:00`);
   const startLaPaz = new Date(endLaPaz);
@@ -37,11 +51,11 @@ function computeRange(range: "90d" | "30d" | "7d") {
 }
 
 export function CandidateActivityOverview() {
-  const [timeRange, setTimeRange] = React.useState<"90d" | "30d" | "7d">("90d");
-  const initial = computeRange("90d");
+  const [timeRange, setTimeRange] = React.useState<"7d" | "30d" | "90d">("7d");
+  const initial = computeRange("7d");
   const [desde, setDesde] = React.useState<string>(initial.desde);
   const [hasta, setHasta] = React.useState<string>(initial.hasta);
-  const [series, setSeries] = React.useState<Array<{ date: string; count: number }>>([]);
+  const [series, setSeries] = React.useState<Array<{ date: string; facebook: number; instagram: number; tiktok: number }>>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
 
@@ -144,37 +158,79 @@ export function CandidateActivityOverview() {
           </div>
         </CardHeader>
         <CardContent>
-         
-          <div className="overflow-x-auto">
-            <div className="overflow-hidden rounded-lg border">
-              <div className="w-full h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={series} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
-                    <defs>
-                      <linearGradient id="fillPosts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32}
-                      tickFormatter={(value: string) => {
-                        const date = new Date(value);
-                        return date.toLocaleDateString("es-BO", { month: "short", day: "numeric" });
-                      }}
-                    />
-                    <Tooltip
-                      cursor={{ stroke: "#94a3b8" }}
-                      contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb" }}
-                      labelFormatter={(value: string) => new Date(value).toLocaleDateString("es-BO", { month: "short", day: "numeric" })}
-                      formatter={(val: any) => [val as number, "Publicaciones"]}
-                    />
-                    <Area type="monotone" dataKey="count" fill="url(#fillPosts)" stroke="#ef4444" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
+          <ChartContainer
+            config={{
+              facebook: { label: "Facebook", color: "#2563eb" },
+              instagram: { label: "Instagram", color: "#e1306c" },
+              tiktok: { label: "TikTok", color: "#111111" },
+            }}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <AreaChart data={series} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+              <defs>
+                <linearGradient id="fillFacebook" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillInstagram" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#e1306c" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#e1306c" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillTikTok" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#111111" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#111111" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="#e5e7eb" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value: string) => {
+                  const date = new Date(value);
+                  return date.toLocaleDateString("es-BO", { month: "short", day: "numeric" });
+                }}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) =>
+                      new Date(value as string).toLocaleDateString("es-BO", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
+                    indicator="dot"
+                  />
+                }
+              />
+              <Area
+                type="monotone"
+                dataKey="facebook"
+                fill="url(#fillFacebook)"
+                stroke="#2563eb"
+                name="Facebook"
+              />
+              <Area
+                type="monotone"
+                dataKey="instagram"
+                fill="url(#fillInstagram)"
+                stroke="#e1306c"
+                name="Instagram"
+              />
+              <Area
+                type="monotone"
+                dataKey="tiktok"
+                fill="url(#fillTikTok)"
+                stroke="#111111"
+                name="TikTok"
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
     </div>

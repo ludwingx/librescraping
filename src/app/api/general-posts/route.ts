@@ -7,19 +7,17 @@ export async function GET(req: NextRequest) {
     const desde = searchParams.get("desde");
     const hasta = searchParams.get("hasta");
 
-    // Convertir fechas locales (zona -04:00) a UTC para el filtro
     let fechaInicio: Date | undefined = undefined;
     let fechaFin: Date | undefined = undefined;
     if (desde) {
-      const localDesde = new Date(desde + 'T00:00:00-04:00');
-      fechaInicio = new Date(localDesde.toISOString()); // UTC
+      // Calcular inicio UTC del día visual Bolivia
+      fechaInicio = new Date(desde + 'T04:00:00.000Z');
     }
     if (hasta) {
-      const localHasta = new Date(hasta + 'T23:59:59.999-04:00');
-      fechaFin = new Date(localHasta.toISOString()); // UTC
+      // Calcular fin UTC del día visual Bolivia (fin del día seleccionado)
+      const hastaUTC = new Date(new Date(hasta + 'T00:00:00-04:00').getTime() + 24*60*60*1000 - 1);
+      fechaFin = new Date(hastaUTC.toISOString());
     }
-
-    // Filtro base para todos los posts (sin filtrar por departamento)
     const baseWhere: any = {};
     if (fechaInicio && fechaFin) {
       baseWhere.fechapublicacion = {
@@ -31,8 +29,6 @@ export async function GET(req: NextRequest) {
     } else if (fechaFin) {
       baseWhere.fechapublicacion = { lte: fechaFin };
     }
-
-    // Obtener todos los posts de todos los departamentos
     const allPostsRaw = await prisma.scrap_post.findMany({
       where: baseWhere,
       orderBy: { fechapublicacion: "desc" },
@@ -43,7 +39,6 @@ export async function GET(req: NextRequest) {
       fechapublicacion: post.fechapublicacion || '',
     }));
 
-    // Obtener posts nacionales PRESIDENTE y VICEPRESIDENTE
     const postsNacionalesRaw = await prisma.scrap_post.findMany({
       where: {
         departamento: { equals: 'PAIS', mode: 'insensitive' },
@@ -59,8 +54,6 @@ export async function GET(req: NextRequest) {
       fechapublicacion: post.fechapublicacion || '',
     }));
 
-    // Filtro de fechas para sin_publicacion
-    // Filtro de fechas local para sin_publicacion (solo días seleccionados, no últimas 24 horas)
     let fechaFiltroSin: { gte?: Date; lte?: Date } = {};
     if (fechaInicio) {
       const inicioLocal = new Date(fechaInicio);
@@ -73,7 +66,6 @@ export async function GET(req: NextRequest) {
       fechaFiltroSin.lte = finLocal;
     }
 
-    // Consulta SQL cruda para evitar error Prisma y filtrar departamento null o vacío
     let sinActividadRegistrosRaw: any[] = [];
     if (fechaFiltroSin.gte && fechaFiltroSin.lte) {
       sinActividadRegistrosRaw = await prisma.$queryRaw`SELECT * FROM "sin_publicacion" WHERE "fecha_scrap" >= ${fechaFiltroSin.gte} AND "fecha_scrap" <= ${fechaFiltroSin.lte} AND "departamento" IS NOT NULL AND "departamento" <> '' ORDER BY "fecha_scrap" DESC LIMIT 500`;

@@ -52,7 +52,7 @@ export default async function Page() {
     await prisma.scrap_post.findMany({
       where: { redsocial: "Facebook", candidatoid: { gt: 0 } },
       orderBy: { fechapublicacion: "desc" },
-      take: 20,
+      // ¡Sin límite! Trae todos los posts para el filtro en el modal
     })
   ).map((post) => ({
     ...post,
@@ -186,6 +186,7 @@ export default async function Page() {
                 </CardContent>
               </Card>
             </div>
+          
             <CandidateActivityOverview />
             {/* Tabla de actividad por candidato */}
             <CandidatePostCounts />

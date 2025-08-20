@@ -26,9 +26,9 @@ function addDays(date: Date, days: number) {
 }
 
 function ymdInLaPaz(dateUTC: Date): string {
-  // Shift -04:00 to get local date
-  const shifted = new Date(dateUTC.getTime() - TZ_OFFSET_MIN * 60 * 1000);
-  return shifted.toISOString().slice(0, 10);
+  // Convertir UTC a La Paz (-04:00) y extraer YYYY-MM-DD
+  const laPaz = new Date(dateUTC.getTime() - 4 * 60 * 60 * 1000);
+  return laPaz.toISOString().slice(0, 10);
 }
 
 // Normaliza URLs para reducir duplicados: quita protocolo, www, query, fragmento, slash final
@@ -58,45 +58,51 @@ export async function GET(request: Request) {
   }
 
   try {
-    const startUTC = localStartUTC(desde);
-    const endUTC = localEndUTC(hasta);
+    // Calcular rango UTC para el día visual en La Paz
+    // Calcular rango UTC para el rango visual Bolivia
+    const startUTC = new Date(desde + 'T04:00:00.000Z');
+    const endUTC = new Date(addDays(new Date(hasta + 'T00:00:00-04:00'), 1).toISOString().slice(0, 10) + 'T03:59:59.999Z');
 
     const posts = await prisma.scrap_post.findMany({
       where: {
-        created_at: {
+        fechapublicacion: {
           gte: startUTC,
           lte: endUTC,
         },
         // Evita filas con candidatoid nulo/0 que inflan conteos y causan errores en prod
         candidatoid: { gt: 0 },
       },
-      select: { id: true, created_at: true, posturl: true },
-      orderBy: { created_at: "asc" },
+      select: { id: true, fechapublicacion: true, posturl: true, redsocial: true },
+      orderBy: { fechapublicacion: "asc" },
     });
 
     // Construir el mapa de fechas usando día calendario en America/La_Paz
-    const result: { date: string; count: number }[] = [];
+    const result: { date: string; facebook: number; instagram: number; tiktok: number }[] = [];
     // Helper para avanzar un día en La Paz y obtener YYYY-MM-DD
     const nextYmd = (ymd: string) => ymdInLaPaz(addDays(localStartUTC(ymd), 1));
     let cursor = desde;
     while (true) {
-      result.push({ date: cursor, count: 0 });
+      result.push({ date: cursor, facebook: 0, instagram: 0, tiktok: 0 });
       if (cursor === hasta) break;
       cursor = nextYmd(cursor);
     }
 
-    // Aggregate con deduplicación por URL de post dentro del mismo día (La Paz)
+    // Aggregate con deduplicación por URL de post dentro del mismo día (La Paz) y red
     const indexByDate = new Map(result.map((r, i) => [r.date, i]));
-    const seen = new Set<string>(); // clave = `${date}::${normalizedUrl}`
+    const seen = new Set<string>(); // clave = `${date}::${normalizedUrl}::${redsocial}`
     for (const p of posts) {
-      const day = ymdInLaPaz(p.created_at as Date);
+      // Usar fechapublicacion como referencia de fecha visual
+      const day = ymdInLaPaz(p.fechapublicacion as Date);
       const idx = indexByDate.get(day);
       if (idx === undefined) continue;
       const normalized = normalizeUrl((p as any).posturl);
-      const k = `${day}::${normalized}`;
+      const red = (p as any).redsocial?.toLowerCase() || "otros";
+      const k = `${day}::${normalized}::${red}`;
       if (seen.has(k)) continue;
       seen.add(k);
-      result[idx].count += 1;
+      if (red === "facebook") result[idx].facebook += 1;
+      else if (red === "instagram") result[idx].instagram += 1;
+      else if (red === "tiktok") result[idx].tiktok += 1;
     }
 
     return NextResponse.json({ data: result });
