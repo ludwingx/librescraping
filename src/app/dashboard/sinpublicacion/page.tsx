@@ -29,10 +29,12 @@ export default function SinPublicacionPage() {
   });
   const [loading, setLoading] = useState(false);
   const [candidatos, setCandidatos] = useState<Candidato[]>([]);
-  const [orden, setOrden] = useState<'departamento' | 'titularidad'>('departamento');
+  const [orden, setOrden] = useState<'departamento' | 'titularidad' | 'candidato'>('titularidad');
+  const [filtroTitularidad, setFiltroTitularidad] = useState<string>('');
+  const [filtroDepartamento, setFiltroDepartamento] = useState<string>('');
 
   // Orden personalizado de titularidad
-  const titularidadOrden = [
+  const titularidadOpciones = [
     'PRESIDENTE',
     'VICEPRESIDENTE',
     'SENADOR',
@@ -40,9 +42,12 @@ export default function SinPublicacionPage() {
     'DIPUTADO UNINOMINAL URBANO',
     'DIPUTADO UNINOMINAL RURAL',
     'DIPUTADO SUPRAESTATAL',
-    'DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL',
-    'OTRO'
+    'DIPUTADO CIRCUNSCRIPCIÓN ESPECIAL'
   ];
+  const titularidadOrden = [...titularidadOpciones, 'OTRO'];
+
+  // Departamentos únicos para el filtro
+  const departamentosUnicos = Array.from(new Set(candidatos.map(c => c.departamento))).sort();
 
   function ordenarCandidatos(data: Candidato[]): Candidato[] {
     if (orden === 'departamento') {
@@ -58,7 +63,7 @@ export default function SinPublicacionPage() {
         const titB = titularidadOrden.indexOf((b.titularidad || '').toUpperCase());
         return (titA === -1 ? 999 : titA) - (titB === -1 ? 999 : titB);
       });
-    } else {
+    } else if (orden === 'titularidad') {
       // Ordenar por titularidad personalizada y luego por departamento
       return [...data].sort((a, b) => {
         const titA = titularidadOrden.indexOf((a.titularidad || '').toUpperCase());
@@ -67,6 +72,11 @@ export default function SinPublicacionPage() {
         // Si misma titularidad, ordenar por departamento
         return (a.departamento || '').localeCompare(b.departamento || '');
       });
+    } else if (orden === 'candidato') {
+      // Ordenar alfabéticamente por nombre completo
+      return [...data].sort((a, b) => (a.nombre_completo || '').localeCompare(b.nombre_completo || ''));
+    } else {
+      return data;
     }
   }
 
@@ -129,34 +139,68 @@ export default function SinPublicacionPage() {
       </header>
       <div  className="w-full max-w-5xl mx-auto px-2 sm:px-6 py-2 sm:py-4 text-sm">
       <h1 className="text-2xl font-bold mb-2">Candidatos sin actividad</h1>
-      <div className="flex gap-4 items-center mb-4">
-        <label htmlFor="desde">Desde:</label>
-        <input
-          id="desde"
-          type="date"
-          className="border rounded px-2 py-1"
-          value={desde}
-          onChange={e => setDesde(e.target.value)}
-        />
-        <label htmlFor="hasta">Hasta:</label>
-        <input
-          id="hasta"
-          type="date"
-          className="border rounded px-2 py-1"
-          value={hasta}
-          onChange={e => setHasta(e.target.value)}
-        />
-        <Button onClick={() => { setDesde(desde); setHasta(hasta); }}>Filtrar</Button>
-        <label htmlFor="orden" className="ml-4">Ordenar por:</label>
-        <select
-          id="orden"
-          className="border rounded px-2 py-1"
-          value={orden}
-          onChange={e => setOrden(e.target.value as 'departamento' | 'titularidad')}
-        >
-          <option value="departamento">Departamento</option>
-          <option value="titularidad">Titularidad</option>
-        </select>
+      <div className="flex flex-wrap gap-6 items-end mb-4">
+        <div className="flex flex-col">
+          <label htmlFor="desde" className="mb-1">Desde:</label>
+          <input
+            id="desde"
+            type="date"
+            className="border rounded px-2 py-1"
+            value={desde}
+            onChange={e => setDesde(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="hasta" className="mb-1">Hasta:</label>
+          <input
+            id="hasta"
+            type="date"
+            className="border rounded px-2 py-1"
+            value={hasta}
+            onChange={e => setHasta(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="orden" className="mb-1">Ordenar por:</label>
+          <select
+            id="orden"
+            className="border rounded px-2 py-1"
+            value={orden}
+            onChange={e => setOrden(e.target.value as 'departamento' | 'titularidad' | 'candidato')}
+          >
+            <option value="departamento">Departamento</option>
+            <option value="titularidad">Titularidad</option>
+            <option value="candidato">Candidato</option>
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="filtro-titularidad" className="mb-1">Filtrar titularidad:</label>
+          <select
+            id="filtro-titularidad"
+            className="border rounded px-2 py-1"
+            value={filtroTitularidad}
+            onChange={e => setFiltroTitularidad(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {titularidadOpciones.map(op => (
+              <option key={op} value={op}>{op}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="filtro-departamento" className="mb-1">Filtrar departamento:</label>
+          <select
+            id="filtro-departamento"
+            className="border rounded px-2 py-1"
+            value={filtroDepartamento}
+            onChange={e => setFiltroDepartamento(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {departamentosUnicos.map(dep => (
+              <option key={dep} value={dep}>{dep}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -178,19 +222,21 @@ export default function SinPublicacionPage() {
                 <TableCell colSpan={3} className="text-center">Todos los candidatos han publicado en el rango seleccionado.</TableCell>
               </TableRow>
             ) : (
-              ordenarCandidatos(candidatos).map((candidato: any) => (
-                <TableRow key={candidato.id}>
-                  <TableCell className="px-1 py-1 min-w-[120px] max-w-[180px] whitespace-normal break-words truncate" title={candidato.nombre_completo}>
-                    {candidato.nombre_completo}
-                  </TableCell>
-                  <TableCell className="px-1 py-1 min-w-[100px] max-w-[160px] whitespace-normal break-words truncate" title={candidato.titularidad}>
-                    {candidato.titularidad}
-                  </TableCell>
-                  <TableCell className="px-1 py-1 min-w-[80px] max-w-[120px] whitespace-normal break-words truncate" title={candidato.departamento}>
-                    {candidato.departamento}
-                  </TableCell>
-                </TableRow>
-              ))
+              ordenarCandidatos(candidatos)
+                .filter(c => (!filtroTitularidad || c.titularidad === filtroTitularidad) && (!filtroDepartamento || c.departamento === filtroDepartamento))
+                .map((candidato: any) => (
+                  <TableRow key={candidato.id}>
+                    <TableCell className="px-1 py-1 min-w-[120px] max-w-[180px] whitespace-normal break-words truncate" title={candidato.nombre_completo}>
+                      {candidato.nombre_completo}
+                    </TableCell>
+                    <TableCell className="px-1 py-1 min-w-[100px] max-w-[160px] whitespace-normal break-words truncate" title={candidato.titularidad}>
+                      {candidato.titularidad}
+                    </TableCell>
+                    <TableCell className="px-1 py-1 min-w-[80px] max-w-[120px] whitespace-normal break-words truncate" title={candidato.departamento}>
+                      {candidato.departamento}
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>
