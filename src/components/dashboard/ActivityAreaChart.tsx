@@ -16,8 +16,14 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+interface ActivityAreaChartData {
+  label: string;
+  value: number;
+  date: string; // YYYY-MM-DD
+}
+
 interface ActivityAreaChartProps {
-  data: { label: string; value: number }[];
+  data: ActivityAreaChartData[];
   color?: string;
   height?: number;
   range?: number;
@@ -38,10 +44,34 @@ export function ActivityAreaChart({ data, color = "#2563eb", height = 260, range
       color,
     },
   };
-  // Mostrar sólo los últimos N días
+  // Filtrar los últimos N días por fecha real (como el ejemplo funcional)
   const filteredData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
-    return data.slice(-range);
+    // Si el backend NO devuelve campo 'date', lo reconstruimos usando el año actual y el label MM-DD
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    // Si existe campo 'date', úsalo; si no, lo reconstruimos
+    return data.filter((item, idx) => {
+      let itemDate;
+      if (item.date) {
+        itemDate = new Date(item.date);
+      } else {
+        // Reconstruir como YYYY-MM-DD
+        const [mm, dd] = item.label.split("-");
+        itemDate = new Date(`${currentYear}-${mm}-${dd}`);
+      }
+      // Tomar el último día disponible como referencia
+      let lastDate;
+      if (data[data.length - 1].date) {
+        lastDate = new Date(data[data.length - 1].date);
+      } else {
+        const [mm, dd] = data[data.length - 1].label.split("-");
+        lastDate = new Date(`${currentYear}-${mm}-${dd}`);
+      }
+      const startDate = new Date(lastDate);
+      startDate.setDate(lastDate.getDate() - range + 1);
+      return itemDate >= startDate && itemDate <= lastDate;
+    });
   }, [data, range]);
 
   return (
@@ -75,7 +105,7 @@ export function ActivityAreaChart({ data, color = "#2563eb", height = 260, range
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+          <XAxis dataKey="label" tick={{ fontSize: 12 }} interval={0} />
           <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
           <Area
             type="monotone"

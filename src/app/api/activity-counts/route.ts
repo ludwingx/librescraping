@@ -11,12 +11,16 @@ export async function GET(req: NextRequest) {
   }
   const start = new Date(startStr);
   const end = new Date(endStr);
-  const days: { label: string; value: number }[] = [];
-  for (let i = 0; i < 31; ++i) {
+  const days: { label: string; value: number; date: string }[] = [];
+  // Permitir hasta 90 días y devolver siempre todos los días del rango
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const totalDays = Math.min(90, Math.ceil((end.getTime() - start.getTime()) / msPerDay) + 1);
+  for (let i = 0; i < totalDays; ++i) {
     const day = new Date(start);
     day.setDate(start.getDate() + i);
     if (day > end) break;
     const label = `${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+    const isoDate = day.toISOString().slice(0, 10); // YYYY-MM-DD
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(day);
@@ -27,7 +31,7 @@ export async function GET(req: NextRequest) {
         candidatoid: { gt: 0 },
       },
     });
-    days.push({ label, value });
+    days.push({ label, date: isoDate, value });
   }
   return NextResponse.json({ data: days });
 }

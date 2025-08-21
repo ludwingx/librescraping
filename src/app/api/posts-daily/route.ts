@@ -26,8 +26,9 @@ function addDays(date: Date, days: number) {
 }
 
 function ymdInLaPaz(dateUTC: Date): string {
-  // Convertir UTC a La Paz (-04:00) y extraer YYYY-MM-DD
+  // Convertir UTC a La Paz (-04:00), adelantar 1 día visual y extraer YYYY-MM-DD
   const laPaz = new Date(dateUTC.getTime() - 4 * 60 * 60 * 1000);
+  laPaz.setDate(laPaz.getDate() + 1);
   return laPaz.toISOString().slice(0, 10);
 }
 
