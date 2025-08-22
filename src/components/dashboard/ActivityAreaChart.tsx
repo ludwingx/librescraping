@@ -16,7 +16,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
-interface ActivityAreaChartData {
+export interface ActivityAreaChartData {
   label: string;
   value: number;
   date: string; // YYYY-MM-DD

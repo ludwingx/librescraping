@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ActivityAreaChart } from "@/components/dashboard/ActivityAreaChart";
+import { ActivityAreaChart, ActivityAreaChartData } from "@/components/dashboard/ActivityAreaChart";
 
 // Helper para obtener fecha en La Paz (UTC-4)
 function getLaPazDateString(d: Date) {
@@ -11,9 +11,10 @@ function getLaPazDateString(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+
 export function DashboardActivityAreaChart() {
   const [range, setRange] = React.useState<number>(7);
-  const [data, setData] = React.useState<{ label: string; value: number }[]>([]);
+  const [data, setData] = React.useState<ActivityAreaChartData[]>([]);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -32,7 +33,16 @@ export function DashboardActivityAreaChart() {
       const params = new URLSearchParams({ start: start.toISOString(), end: yEnd.toISOString() });
       const res = await fetch(`/api/activity-counts?${params}`);
       const json = await res.json();
-      setData(json.data);
+      // Compatibilidad: si falta 'date', lo reconstruimos usando el año actual
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const dataWithDate = (json.data as any[]).map((item: any) => {
+        if (item.date) return item;
+        // reconstruir date a partir de label MM-DD
+        const [mm, dd] = item.label.split("-");
+        return { ...item, date: `${currentYear}-${mm}-${dd}` };
+      });
+      setData(dataWithDate);
       setLoading(false);
     }
     fetchData();
