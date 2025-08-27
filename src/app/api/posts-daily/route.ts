@@ -26,9 +26,8 @@ function addDays(date: Date, days: number) {
 }
 
 function ymdInLaPaz(dateUTC: Date): string {
-  // Convertir UTC a La Paz (-04:00), adelantar 1 día visual y extraer YYYY-MM-DD
+  // Convertir UTC a La Paz (-04:00) y extraer YYYY-MM-DD del día calendario en La Paz
   const laPaz = new Date(dateUTC.getTime() - 4 * 60 * 60 * 1000);
-  laPaz.setDate(laPaz.getDate() + 1);
   return laPaz.toISOString().slice(0, 10);
 }
 
@@ -58,11 +57,20 @@ export async function GET(request: Request) {
     );
   }
 
+  // Safety cap: limitar el rango máximo a 120 días para evitar OOM
+  const startUTC = localStartUTC(desde);
+  const endUTC = localEndUTC(hasta);
+  const MAX_DAYS = 120;
+  const diffDays = Math.floor((endUTC.getTime() - startUTC.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+  if (diffDays > MAX_DAYS) {
+    return NextResponse.json(
+      { error: `Rango demasiado amplio (${diffDays} días). Máximo permitido: ${MAX_DAYS} días.` },
+      { status: 400 }
+    );
+  }
+
   try {
-    // Calcular rango UTC para el día visual en La Paz
-    // Calcular rango UTC para el rango visual Bolivia
-    const startUTC = new Date(desde + 'T04:00:00.000Z');
-    const endUTC = new Date(addDays(new Date(hasta + 'T00:00:00-04:00'), 1).toISOString().slice(0, 10) + 'T03:59:59.999Z');
+    // Calcular rango UTC exacto del día calendario en La Paz (-04:00)
 
     const posts = await prisma.scrap_post.findMany({
       where: {

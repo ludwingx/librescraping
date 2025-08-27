@@ -13,16 +13,32 @@ interface CandidateCountItem {
   total_likes: number;
 }
 
+// Format YYYY-MM-DD in La Paz time (UTC-4, no DST)
+function ymdInLaPaz(dateUTC: Date): string {
+  const laPaz = new Date(dateUTC.getTime() - 4 * 60 * 60 * 1000);
+  const y = laPaz.getUTCFullYear();
+  const m = String(laPaz.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(laPaz.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDaysUTC(d: Date, days: number) {
+  const nd = new Date(d);
+  nd.setUTCDate(nd.getUTCDate() + days);
+  return nd;
+}
+
 function getDefaultDate() {
-  const hoy = new Date();
-  const ayer = new Date(hoy);
-  ayer.setDate(hoy.getDate() - 1);
-  return ayer.toISOString().slice(0, 10);
+  // Yesterday in La Paz, formatted as YYYY-MM-DD
+  const nowUTC = new Date();
+  const ayerUTC = addDaysUTC(nowUTC, -1);
+  return ymdInLaPaz(ayerUTC);
 }
 
 export function CandidatePostCounts() {
-  const [desde, setDesde] = React.useState<string>(() => getDefaultDate());
-  const [hasta, setHasta] = React.useState<string>(() => getDefaultDate());
+  const defaultYesterday = React.useMemo(() => getDefaultDate(), []);
+  const [desde, setDesde] = React.useState<string>(() => defaultYesterday);
+  const [hasta, setHasta] = React.useState<string>(() => defaultYesterday);
   const [titularidad, setTitularidad] = React.useState<string>("");
   const [departamento, setDepartamento] = React.useState<string>("");
   const [data, setData] = React.useState<CandidateCountItem[]>([]);
@@ -140,7 +156,7 @@ export function CandidatePostCounts() {
               type="date"
               className="border rounded px-2 py-1"
               value={desde}
-              max={hasta}
+              max={hasta || defaultYesterday}
               onChange={(e) => setDesde(e.target.value)}
             />
           </div>
@@ -151,6 +167,7 @@ export function CandidatePostCounts() {
               className="border rounded px-2 py-1"
               value={hasta}
               min={desde}
+              max={defaultYesterday}
               onChange={(e) => setHasta(e.target.value)}
             />
           </div>

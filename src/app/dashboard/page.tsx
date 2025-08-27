@@ -121,8 +121,8 @@ export default async function Page() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-gradient-to-b from-blue-50 via-white to-white min-h-screen">
-        <div className="container mx-auto py-8 max-w-7xl">
-          <div className="flex flex-col items-center w-full">
+        <div className="w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-stretch w-full">
         
             {/* Cards resumen (4) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -186,9 +186,9 @@ export default async function Page() {
                 </CardContent>
               </Card>
             </div>
-          
-            <CandidateActivityOverview />
-            {/* Tabla de actividad por candidato */}
+            <div className="pt-4">
+              <CandidateActivityOverview />
+            </div>
             <CandidatePostCounts />
             </div>
 

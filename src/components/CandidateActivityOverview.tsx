@@ -1,187 +1,174 @@
-"use client";
-import React from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+"use client"
+
+import * as React from "react"
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "@/components/ui/chart"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-// Helpers para zona America/La_Paz (-04:00)
-function ymdInLaPaz(date: Date) {
-  const laPaz = new Date(date.getTime() - 4 * 60 * 60 * 1000);
-  const y = laPaz.getUTCFullYear();
-  const m = String(laPaz.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(laPaz.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+// Helper: format YYYY-MM-DD using La Paz time (UTC-4, no DST)
+function ymdInLaPaz(dateUTC: Date): string {
+  const laPaz = new Date(dateUTC.getTime() - 4 * 60 * 60 * 1000)
+  const y = laPaz.getUTCFullYear()
+  const m = String(laPaz.getUTCMonth() + 1).padStart(2, "0")
+  const d = String(laPaz.getUTCDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
 }
 
-function getYesterdayLaPazYMD() {
-  const now = new Date();
-  const laPazNow = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-  const laPazYesterday = new Date(laPazNow);
-  laPazYesterday.setUTCDate(laPazNow.getUTCDate() - 1);
-  return ymdInLaPaz(laPazYesterday);
+export const CandidateActivityOverview = React.memo(CandidateActivityOverviewImpl)
+
+function addDaysUTC(d: Date, days: number) {
+  const nd = new Date(d)
+  nd.setUTCDate(nd.getUTCDate() + days)
+  return nd
 }
 
-// Nueva función para obtener la fecha de hoy en La Paz
-function getTodayLaPazYMD() {
-  const now = new Date();
-  const laPazNow = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-  return ymdInLaPaz(laPazNow);
-}
+const chartConfig = {
+  // Facebook brand blue
+  facebook: { label: "Facebook", color: "#1877F2" },
+  // Instagram pink
+  instagram: { label: "Instagram", color: "#E1306C" },
+  // TikTok black
+  tiktok: { label: "TikTok", color: "#000000" },
+} satisfies ChartConfig
 
-function computeRange(range: "90d" | "30d" | "7d") {
-  const end = getTodayLaPazYMD(); // hasta = hoy (La Paz)
-  // Construimos fechas ancladas a -04:00 para restar días correctamente
-  const endLaPaz = new Date(`${end}T00:00:00-04:00`);
-  const startLaPaz = new Date(endLaPaz);
-  const span = range === "7d" ? 6 : range === "30d" ? 29 : 89;
-  startLaPaz.setUTCDate(endLaPaz.getUTCDate() - span);
-  return {
-    desde: ymdInLaPaz(startLaPaz),
-    hasta: end,
-  };
-}
+type DailyItem = { date: string; facebook: number; instagram: number; tiktok: number }
 
-export function CandidateActivityOverview() {
-  const [timeRange, setTimeRange] = React.useState<"7d" | "30d" | "90d">("7d");
-  const initial = computeRange("7d");
-  const [desde, setDesde] = React.useState<string>(initial.desde);
-  const [hasta, setHasta] = React.useState<string>(initial.hasta);
-  const [series, setSeries] = React.useState<Array<{ date: string; facebook: number; instagram: number; tiktok: number }>>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string>("");
+function CandidateActivityOverviewImpl() {
+  const [timeRange, setTimeRange] = React.useState<"7d" | "30d" | "90d">("7d")
+  const [data, setData] = React.useState<DailyItem[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const reqIdRef = React.useRef(0)
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  React.useEffect(() => {
-    const r = computeRange(timeRange);
-    setDesde(r.desde);
-    setHasta(r.hasta);
-  }, [timeRange]);
+  const load = React.useCallback(async (range: "7d" | "30d" | "90d") => {
+    const myId = ++reqIdRef.current
+    try {
+      setLoading(true)
+      setError(null)
+      const nowUTC = new Date()
+      // Fin del rango: ayer en La Paz (no hoy)
+      const ayerUTC = addDaysUTC(nowUTC, -1)
+      const hasta = ymdInLaPaz(ayerUTC)
+      const days = range === "7d" ? 7 : range === "30d" ? 30 : 90
+      // desde: ventana que termina ayer (inclusive)
+      const desde = ymdInLaPaz(addDaysUTC(ayerUTC, -(days - 1)))
 
-  // Fetch real daily counts whenever desde/hasta changes
-  React.useEffect(() => {
-    if (!desde || !hasta) return;
-    const controller = new AbortController();
-    async function run() {
-      try {
-        setLoading(true);
-        setError("");
-        const res = await fetch(`/api/posts-daily?desde=${desde}&hasta=${hasta}`, { signal: controller.signal });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body?.error || `Error ${res.status}`);
+      // Timeout con Promise.race para evitar AbortError en consola
+      const timeoutMs = 60000
+      const timeoutPromise = new Promise<"timeout">((resolve) => setTimeout(() => resolve("timeout"), timeoutMs))
+      const fetchPromise = fetch(`/api/posts-daily?desde=${desde}&hasta=${hasta}`)
+      const raced = await Promise.race([fetchPromise, timeoutPromise])
+      if (raced === "timeout") {
+        // Si otra solicitud comenzó después, no sobreescribas
+        if (myId === reqIdRef.current) {
+          setError("La solicitud tardó demasiado y fue cancelada. Intenta de nuevo.")
         }
-        const body = await res.json();
-        setSeries(Array.isArray(body.data) ? body.data : []);
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        setError(e?.message || "Error al cargar datos");
-        setSeries([]);
-      } finally {
-        setLoading(false);
+        return
+      }
+      const res = raced as Response
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const json = await res.json()
+      const arr: DailyItem[] = json.data || []
+      if (myId === reqIdRef.current) {
+        setData(arr)
+      }
+    } catch (e: any) {
+      console.error("CandidateActivityOverview load error", e)
+      if (myId === reqIdRef.current) {
+        setError(e?.message || "Error cargando datos")
+      }
+    } finally {
+      if (myId === reqIdRef.current) {
+        setLoading(false)
       }
     }
-    run();
-    return () => controller.abort();
-  }, [desde, hasta]);
+  }, [])
+
+  React.useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      load(timeRange)
+    }, 250)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [timeRange, load])
 
   return (
-    <div className="w-full mt-6">
-      <Card className="@container/card">
-        <CardHeader className="gap-2">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle className="text-blue-700 font-bold text-lg">Resumen de actividad de Todos los Candidatos</CardTitle>
-              <CardDescription>
-                <span className="hidden @[540px]/card:inline">Total para el rango seleccionado</span>
-                <span className="@[540px]/card:hidden">Rango seleccionado</span>
-              </CardDescription>
-              {desde && hasta && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Rango: {desde} <span className="mx-1">–</span> {hasta}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {/* ToggleGroup (desktop) */}
-              <div className="hidden md:flex">
-                <ToggleGroup
-                  type="single"
-                  value={timeRange}
-                  onValueChange={(v: string) => {
-                    if (v) setTimeRange(v as "90d" | "30d" | "7d");
-                  }}
-                  variant="outline"
-                  className="*:data-[slot=toggle-group-item]:px-4"
-                >
-                  <ToggleGroupItem
-                    value="90d"
-                    className="h-8 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:hover:bg-blue-700"
-                  >
-                    Últimos 3 meses
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="30d"
-                    className="h-8 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:hover:bg-blue-700"
-                  >
-                    Últimos 30 días
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="7d"
-                    className="h-8 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:hover:bg-blue-700"
-                  >
-                    Últimos 7 días
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-              {/* Select (mobile) */}
-              <div className="md:hidden">
-                <Select value={timeRange} onValueChange={(v: "90d" | "30d" | "7d") => setTimeRange(v)}>
-                  <SelectTrigger className="w-48" aria-label="Selecciona un rango">
-                    <SelectValue placeholder="Selecciona un rango" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="90d">Últimos 3 meses</SelectItem>
-                    <SelectItem value="30d">Últimos 30 días</SelectItem>
-                    <SelectItem value="7d">Últimos 7 días</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+    <Card className="w-full h-auto pt-4 pb-4 px-4">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+        <div className="grid flex-1 gap-1">
+          <CardTitle>Actividad diaria por red</CardTitle>
+          <CardDescription>
+            Conteo de publicaciones diarias (Facebook, Instagram, TikTok) · {timeRange === "7d" ? "Últimos 7 días" : timeRange === "30d" ? "Últimos 30 días" : "Últimos 90 días"}
+          </CardDescription>
+        </div>
+        <Select value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
+          <SelectTrigger className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex" aria-label="Rango de tiempo">
+            <SelectValue placeholder="Últimos 30 días" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            <SelectItem value="90d" className="rounded-lg">Últimos 90 días</SelectItem>
+            <SelectItem value="30d" className="rounded-lg">Últimos 30 días</SelectItem>
+            <SelectItem value="7d" className="rounded-lg">Últimos 7 días</SelectItem>
+          </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent className="px-0 pt-4 sm:px-0 sm:pt-6">
+        {error && (
+          <div className="flex items-center gap-3 text-sm text-red-600">
+            <span>{error}</span>
+            <button
+              className="rounded-md border px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+              onClick={() => load(timeRange)}
+            >
+              Reintentar
+            </button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={{
-              facebook: { label: "Facebook", color: "#2563eb" },
-              instagram: { label: "Instagram", color: "#e1306c" },
-              tiktok: { label: "TikTok", color: "#111111" },
-            }}
-            className="aspect-auto h-[250px] w-full"
-          >
-            <AreaChart data={series} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+        )}
+        {!error && data.length === 0 && !loading && (
+          <div className="text-sm text-muted-foreground">Sin datos para el rango seleccionado.</div>
+        )}
+        {!error && data.length > 0 && (
+          <ChartContainer config={chartConfig} className="w-full h-[280px] sm:h-[340px] md:h-[400px]">
+            <AreaChart data={data} margin={{ left: 0, right: 0 }}>
               <defs>
                 <linearGradient id="fillFacebook" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#1877F2" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#1877F2" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="fillInstagram" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#e1306c" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#e1306c" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#E1306C" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#E1306C" stopOpacity={0.1} />
                 </linearGradient>
                 <linearGradient id="fillTikTok" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#111111" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#111111" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="#000000" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#000000" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#e5e7eb" />
+              <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -189,100 +176,28 @@ export function CandidateActivityOverview() {
                 tickMargin={8}
                 minTickGap={32}
                 tickFormatter={(value: string) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString("es-BO", { month: "short", day: "numeric" });
+                  const d = new Date(`${value}T00:00:00-04:00`)
+                  return d.toLocaleDateString("es-BO", { month: "short", day: "numeric" })
                 }}
               />
               <ChartTooltip
                 cursor={false}
                 content={
                   <ChartTooltipContent
-                    labelFormatter={(value) =>
-                      new Date(value as string).toLocaleDateString("es-BO", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    }
+                    labelFormatter={(value: string) => new Date(`${value}T00:00:00-04:00`).toLocaleDateString("es-BO", { weekday: "short", year: "numeric", month: "short", day: "numeric" })}
                     indicator="dot"
                   />
                 }
               />
-              <Area
-                type="monotone"
-                dataKey="facebook"
-                fill="url(#fillFacebook)"
-                stroke="#2563eb"
-                name="Facebook"
-              />
-              <Area
-                type="monotone"
-                dataKey="instagram"
-                fill="url(#fillInstagram)"
-                stroke="#e1306c"
-                name="Instagram"
-              />
-              <Area
-                type="monotone"
-                dataKey="tiktok"
-                fill="url(#fillTikTok)"
-                stroke="#111111"
-                name="TikTok"
-              />
+              {/* Render TikTok first (bottom), then Instagram, then Facebook last (top) */}
+              <Area dataKey="tiktok" name="TikTok" type="natural" fill="url(#fillTikTok)" stroke="#000000" strokeWidth={2} stackId="a" />
+              <Area dataKey="instagram" name="Instagram" type="natural" fill="url(#fillInstagram)" stroke="#E1306C" strokeWidth={2} stackId="a" />
+              <Area dataKey="facebook" name="Facebook" type="natural" fill="url(#fillFacebook)" stroke="#1877F2" strokeWidth={2} stackId="a" />
               <ChartLegend content={<ChartLegendContent />} />
             </AreaChart>
           </ChartContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// Componente de gráfica de área simple sin dependencias
-function ChartInline({ series }: { series: Array<{ date: string; count: number }> }) {
-  if (!series || series.length === 0) return null;
-
-  const values = series.map((s) => s.count);
-
-  const width = 800; // ancho virtual
-  const height = 220; // alto de la gráfica
-  const padding = 24;
-  const innerW = width - padding * 2;
-  const innerH = height - padding * 2;
-  const maxVal = Math.max(1, ...values);
-
-  const points = values.map((v, i) => {
-    const x = padding + (innerW * i) / Math.max(1, values.length - 1);
-    const y = padding + innerH - (v / maxVal) * innerH;
-    return { x, y };
-  });
-
-  // Path para el área
-  const areaPath = (() => {
-    if (points.length === 0) return "";
-    const top = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-    const last = points[points.length - 1];
-    const first = points[0];
-    return `${top} L${last.x},${padding + innerH} L${first.x},${padding + innerH} Z`;
-  })();
-
-  // Path para la línea
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-
-  return (
-    <div className="mt-4 overflow-x-auto">
-      <div className="min-w-full">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-[250px]">
-          {/* Grid horizontal ligera */}
-          {Array.from({ length: 4 }).map((_, i) => {
-            const y = 24 + (innerH * (i + 1)) / 5;
-            return <line key={i} x1={padding} y1={y} x2={width - padding} y2={y} stroke="#e5e7eb" strokeWidth={1} />;
-          })}
-          {/* Área */}
-          <path d={areaPath} fill="#bfdbfe" fillOpacity={0.5} />
-          {/* Línea */}
-          <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} />
-        </svg>
-      </div>
-    </div>
-  );
+        )}
+      </CardContent>
+    </Card>
+  )
 }
