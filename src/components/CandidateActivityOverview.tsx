@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -153,7 +153,7 @@ function CandidateActivityOverviewImpl() {
         )}
         {!error && data.length > 0 && (
           <ChartContainer config={chartConfig} className="w-full h-[260px] sm:h-[320px] md:h-[380px]">
-            <AreaChart data={data} margin={{ left: 0, right: 0 }}>
+            <AreaChart data={data} margin={{ left: 40, right: 0 }}>
               <defs>
                 <linearGradient id="fillFacebook" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#1877F2" stopOpacity={0.8} />
@@ -168,6 +168,22 @@ function CandidateActivityOverviewImpl() {
                   <stop offset="95%" stopColor="#000000" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
+              <YAxis
+                width={40}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 12 }}
+                allowDecimals={false}
+                domain={[0, 100]}
+                label={{
+                  value: "Publicaciones",
+                  angle: -90,
+                  offset: -20,
+                  position: "insideLeft",
+                  style: {  textAnchor: "middle", fontSize: 16, fill: "#888", fontWeight: "bold" },
+                }}
+              />
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="date"
