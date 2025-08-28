@@ -5,6 +5,7 @@ import React from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "../ui/card";
@@ -40,9 +41,11 @@ export function SocialMediaPieChart({ data }: SocialMediaPieChartProps) {
     <Card className="w-full">
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-medium text-center">Distribución por red social</CardTitle>
+        <CardDescription className="text-xs text-muted-foreground">Últimos 7 días </CardDescription>
+        
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="h-[320px] w-full flex items-center justify-center">
+      <CardContent>
+        <div className="h-[300px] w-full flex items-center justify-center">
           <div className="w-full max-w-[320px] h-[300px]">
             <ChartContainer 
               config={chartConfig}
