@@ -206,13 +206,12 @@ export async function generarBoletinPDF({
     doc.text("Sin actividad en RRSS", 105, y, { align: "center" });
     y += 10;
     doc.setFontSize(12);
-    // Encabezado tabla
-    const colX = [24, 90, 156]; // Más espacio para nombre y titularidad
-    const colW = [60, 60, 40];  // Anchos máximos para recorte
+    // Encabezado tabla (más separación entre columnas y alineación a la izquierda)
+    const colX = [24, 130]; // X para Nombre y Titularidad
     doc.setFontSize(13);
     doc.setTextColor(40,40,40);
     doc.text("Nombre", colX[0], y, { align: "left" });
-    doc.text("Titularidad", colX[1], y, { align: "right" });
+    doc.text("Titularidad", colX[1], y, { align: "left" });
     y += 5;
     doc.setLineWidth(0.4);
     doc.line(18, y, 190, y);
@@ -226,16 +225,17 @@ export async function generarBoletinPDF({
       // Fondo alterno para filas
       if (idx % 2 === 1) {
         doc.setFillColor(245,245,245);
-        doc.rect(19, y-5, 170, 9, 'F');
+        doc.rect(19, y-6, 172, 10, 'F');
       }
       doc.setFontSize(12);
       doc.setTextColor(30,30,30);
-      doc.text(crop(item.candidato || '', 28), colX[0], y, { align: "left" });
-      doc.text(crop(item.titularidad || '', 22), colX[1], y, { align: "right" });
+      // Más espacio para el nombre; ambas columnas alineadas a la izquierda para evitar colisiones visuales
+      doc.text(crop(item.candidato || '', 42), colX[0], y, { align: "left" });
+      doc.text(crop(item.titularidad || '', 28), colX[1], y, { align: "left" });
       // Línea horizontal por fila
       doc.setDrawColor(220,220,220);
-      doc.line(18, y+2, 190, y+2);
-      y += 8;
+      doc.line(18, y+3, 190, y+3);
+      y += 10;
       if (y > 270) { doc.addPage(); y = 20; }
     });
   }

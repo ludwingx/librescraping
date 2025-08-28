@@ -11,8 +11,9 @@ import prisma from "@/lib/prisma";
 import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
 import { CandidatePostCounts } from "@/components/CandidatePostCounts";
 import { CandidateActivityOverview } from "@/components/CandidateActivityOverview";
+import { SocialMediaPieChart } from "@/components/dashboard/SocialMediaPieChart";
 import { QuickActionCard } from "@/components/ui/quick-action-card";
-import { BarChart3, Download, Users } from "lucide-react";
+import { BarChart3, Download, PieChart, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -20,6 +21,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { ParticipationPieChart } from "@/components/dashboard/ParticipationPieChart";
 
 export default async function Page() {
 
@@ -87,6 +89,46 @@ export default async function Page() {
   });
   const avgDaily7d = posts7d / 7;
 
+  // Extra metrics for more cards
+  const postsYesterdayCount = await prisma.scrap_post.count({
+    where: {
+      fechapublicacion: { gte: yStart, lte: yEnd },
+    },
+  });
+
+  const candidatesNoActivityYesterday = Math.max(
+    0,
+    totalCandidates - activeYesterday
+  );
+
+  // Top departamento by posts yesterday
+  const topDeptGroups = await prisma.scrap_post.groupBy({
+    by: ["departamento"],
+    where: {
+      fechapublicacion: { gte: yStart, lte: yEnd },
+      candidatoid: { gt: 0 },
+    },
+    _count: { _all: true },
+  });
+  const topDeptSorted = topDeptGroups.sort((a, b) => (b._count._all ?? 0) - (a._count._all ?? 0));
+  const topDeptYesterday = topDeptSorted[0]?.departamento || "Sin datos";
+  const topDeptYesterdayCount = topDeptSorted[0]?._count._all || 0;
+
+  // Distribution by network last 7 days
+  const byNetwork7d = await prisma.scrap_post.groupBy({
+    by: ["redsocial"],
+    where: { fechapublicacion: { gte: start7, lte: end7 } },
+    _count: { _all: true },
+  });
+  const netMap: Record<string, number> = {};
+  for (const row of byNetwork7d) {
+    netMap[row.redsocial] = row._count._all;
+  }
+  const fb7 = netMap["Facebook"] || 0;
+  const ig7 = netMap["Instagram"] || 0;
+  const tk7 = netMap["TikTok"] || 0;
+  const totalNet7 = fb7 + ig7 + tk7 || 1; // avoid div by zero
+
 
   return (
     <>
@@ -142,20 +184,13 @@ export default async function Page() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Participación de candidatos (ayer)</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="text-2xl font-bold text-green-600">{participantsPct.toFixed(1)}%</div>
-                      <p className="text-xs text-muted-foreground">Participaron</p>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-red-600">{nonParticipantsPct.toFixed(1)}%</div>
-                      <p className="text-xs text-muted-foreground">No participaron</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {activeYesterday} de {totalCandidates} candidatos con publicaciones
-                  </p>
+                <CardContent className="pt-0">
+                  <ParticipationPieChart 
+                    active={activeYesterday} 
+                    total={totalCandidates} 
+                    candidateName="candidatos"
+                    date={yStr}
+                  />
                 </CardContent>
               </Card>
 
@@ -185,6 +220,42 @@ export default async function Page() {
                   <ExcelDownloadModal posts={posts} sinActividad={[]} departamentoNombre={"General"} />
                 </CardContent>
               </Card>
+            </div>
+            {/* Más métricas (4 nuevas cards) */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              {/* Card: Publicaciones de ayer */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Publicaciones ayer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-700">{postsYesterdayCount}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
+                </CardContent>
+              </Card>
+
+              {/* Card: Candidatos sin actividad ayer */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Candidatos sin actividad (ayer)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-amber-600">{candidatesNoActivityYesterday}</div>
+                  <p className="text-xs text-muted-foreground mt-1">De {totalCandidates} totales</p>
+                </CardContent>
+              </Card>
+
+              {/* Card ancha (col-span-2): Distribución por red (7 días) */}
+              <div className="lg:col-span-2">
+                <SocialMediaPieChart 
+                  data={[
+                    { platform: 'Facebook', count: fb7 },
+                    { platform: 'Instagram', count: ig7 },
+                    { platform: 'TikTok', count: tk7 }
+                  ]} 
+                />
+              </div>
+
             </div>
             <div className="pt-4">
               <CandidateActivityOverview />

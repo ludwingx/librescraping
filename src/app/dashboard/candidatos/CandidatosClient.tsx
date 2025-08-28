@@ -190,42 +190,35 @@ export default function CandidatosClient() {
                 <TableCell colSpan={8} className="text-center py-8">Sin datos</TableCell>
               </TableRow>
             ) : (
-              [...candidatos].sort((a, b) => {
-                const titA = titularidades.indexOf((a.titularidad || '').toUpperCase());
-                const titB = titularidades.indexOf((b.titularidad || '').toUpperCase());
-                if (titA !== titB) return titA - titB;
-                const depA = (["PRESIDENTE", "VICEPRESIDENTE"].includes((a.titularidad || '').toUpperCase()) ? "PAIS" : (a.departamento || '').toUpperCase());
-                const depB = (["PRESIDENTE", "VICEPRESIDENTE"].includes((b.titularidad || '').toUpperCase()) ? "PAIS" : (b.departamento || '').toUpperCase());
-                if (depA < depB) return -1;
-                if (depA > depB) return 1;
-                return (a.nombre_completo || '').localeCompare(b.nombre_completo || '');
-              }).map((candidato) => (
-                <TableRow key={candidato.id}>
-                  <TableCell className="px-1 py-1 text-center">{candidato.id}</TableCell>
-                  <TableCell className="px-1 py-1 truncate max-w-[100px]">{["PRESIDENTE", "VICEPRESIDENTE"].includes((candidato.titularidad || '').toUpperCase()) ? "PAIS" : candidato.departamento}</TableCell>
-                  <TableCell className="px-1 py-1 truncate max-w-[120px]">{candidato.titularidad}</TableCell>
-                  <TableCell className="px-1 py-1 truncate max-w-[140px]">{candidato.nombre_completo}</TableCell>
-                  <TableCell className="px-1 py-1 max-w-[120px] truncate">
-                    {candidato.facebook_url ? (
-                      <a href={candidato.facebook_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate inline-block max-w-[100px]">{candidato.facebook_url}</a>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell className="px-1 py-1 max-w-[120px] truncate">
-                    {candidato.instagram_url ? (
-                      <a href={candidato.instagram_url} target="_blank" rel="noopener noreferrer" className="text-pink-600 underline truncate inline-block max-w-[100px]">{candidato.instagram_url}</a>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell className="px-1 py-1 max-w-[120px] truncate">
-                    {candidato.tiktok_url ? (
-                      <a href={candidato.tiktok_url} target="_blank" rel="noopener noreferrer" className="text-black underline truncate inline-block max-w-[100px]">{candidato.tiktok_url}</a>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell className="px-1 py-1 text-center">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(candidato)} className="mr-2">Editar</Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(candidato)}>Eliminar</Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              [...candidatos]
+                .sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0))
+                .map((candidato) => (
+                  <TableRow key={candidato.id}>
+                    <TableCell className="px-1 py-1 text-center">{candidato.id}</TableCell>
+                    <TableCell className="px-1 py-1 truncate max-w-[100px]">{["PRESIDENTE", "VICEPRESIDENTE"].includes((candidato.titularidad || '').toUpperCase()) ? "PAIS" : candidato.departamento}</TableCell>
+                    <TableCell className="px-1 py-1 truncate max-w-[120px]">{candidato.titularidad}</TableCell>
+                    <TableCell className="px-1 py-1 truncate max-w-[140px]">{candidato.nombre_completo}</TableCell>
+                    <TableCell className="px-1 py-1 max-w-[120px] truncate">
+                      {candidato.facebook_url ? (
+                        <a href={candidato.facebook_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline truncate inline-block max-w-[100px]">{candidato.facebook_url}</a>
+                      ) : <span className="text-red-600 font-semibold">NO TIENE</span>}
+                    </TableCell>
+                    <TableCell className="px-1 py-1 max-w-[120px] truncate">
+                      {candidato.instagram_url ? (
+                        <a href={candidato.instagram_url} target="_blank" rel="noopener noreferrer" className="text-pink-600 underline truncate inline-block max-w-[100px]">{candidato.instagram_url}</a>
+                      ) : <span className="text-red-600 font-semibold">NO TIENE</span>}
+                    </TableCell>
+                    <TableCell className="px-1 py-1 max-w-[120px] truncate">
+                      {candidato.tiktok_url ? (
+                        <a href={candidato.tiktok_url} target="_blank" rel="noopener noreferrer" className="text-black underline truncate inline-block max-w-[100px]">{candidato.tiktok_url}</a>
+                      ) : <span className="text-red-600 font-semibold">NO TIENE</span>}
+                    </TableCell>
+                    <TableCell className="px-1 py-1 text-center">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(candidato)} className="mr-2">Editar</Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(candidato)}>Eliminar</Button>
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>

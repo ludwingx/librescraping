@@ -152,7 +152,7 @@ function CandidateActivityOverviewImpl() {
           <div className="text-sm text-muted-foreground">Sin datos para el rango seleccionado.</div>
         )}
         {!error && data.length > 0 && (
-          <ChartContainer config={chartConfig} className="w-full h-[280px] sm:h-[340px] md:h-[400px]">
+          <ChartContainer config={chartConfig} className="w-full h-[260px] sm:h-[320px] md:h-[380px]">
             <AreaChart data={data} margin={{ left: 0, right: 0 }}>
               <defs>
                 <linearGradient id="fillFacebook" x1="0" y1="0" x2="0" y2="1">

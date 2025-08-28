@@ -11,18 +11,15 @@ export async function GET(req: NextRequest) {
   const titularidad = searchParams.get('titularidad');
 
   const where: any = {};
+  // Interpretar fechas como días completos en zona America/La_Paz (UTC-4)
+  const startOfDayLaPaz = (ymd: string) => new Date(`${ymd}T00:00:00.000-04:00`);
+  const endOfDayLaPaz = (ymd: string) => new Date(`${ymd}T23:59:59.999-04:00`);
   if (desde && hasta) {
-    const desdeDate = new Date(desde);
-    const hastaDate = new Date(hasta);
-    hastaDate.setHours(23,59,59,999);
-    where.created_at = { gte: desdeDate, lte: hastaDate };
+    where.fechapublicacion = { gte: startOfDayLaPaz(desde), lte: endOfDayLaPaz(hasta) };
   } else if (desde) {
-    const desdeDate = new Date(desde);
-    where.created_at = { gte: desdeDate };
+    where.fechapublicacion = { gte: startOfDayLaPaz(desde) };
   } else if (hasta) {
-    const hastaDate = new Date(hasta);
-    hastaDate.setHours(23,59,59,999);
-    where.created_at = { lte: hastaDate };
+    where.fechapublicacion = { lte: endOfDayLaPaz(hasta) };
   }
   if (ciudad) {
     where.departamento = { equals: ciudad, mode: 'insensitive' };
@@ -31,36 +28,14 @@ export async function GET(req: NextRequest) {
     where.titularidad = { equals: titularidad, mode: 'insensitive' };
   }
 
-  const posts = await prisma.scrap_post.findMany({ where });
-
-  const whereSin: any = {};
-  if (desde && hasta) {
-    const desdeDate = new Date(desde);
-    const hastaDate = new Date(hasta);
-    hastaDate.setHours(23,59,59,999);
-    whereSin.fecha_scrap = { gte: desdeDate, lte: hastaDate };
-  } else if (desde) {
-    const desdeDate = new Date(desde);
-    whereSin.fecha_scrap = { gte: desdeDate };
-  } else if (hasta) {
-    const hastaDate = new Date(hasta);
-    hastaDate.setHours(23,59,59,999);
-    whereSin.fecha_scrap = { lte: hastaDate };
-  }
-  if (ciudad) {
-    whereSin.departamento = { equals: ciudad, mode: 'insensitive' };
-  }
-  if (titularidad) {
-    whereSin.titularidad = { equals: titularidad, mode: 'insensitive' };
-  }
-  const sinActividad = await prisma.sin_publicacion.findMany({ where: whereSin });
-
-  // Crear workbook y agregar ambas hojas
+  const posts = await prisma.scrap_post.findMany({
+    where,
+    orderBy: { fechapublicacion: 'asc' }
+  });
+  // Crear workbook con una sola hoja basada en scrap_post
   const worksheetPosts = XLSX.utils.json_to_sheet(posts);
-  const worksheetSin = XLSX.utils.json_to_sheet(sinActividad);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheetPosts, 'Publicaciones');
-  XLSX.utils.book_append_sheet(workbook, worksheetSin, 'Sin actividad RRSS');
   const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
   return new NextResponse(buffer, {

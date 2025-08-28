@@ -45,6 +45,11 @@ const data = {
       url: "/dashboard/igeneral",
       icon: TrendingUp,
     },
+    {
+      title: "Candidatos sin actividad",
+      url: "/dashboard/sinpublicacion",
+      icon: Users,
+    },
     ...[
       "Santa Cruz",
       "La Paz",
@@ -61,13 +66,8 @@ const data = {
       icon: MapPin,
     })),
     {
-      title: "Candidatos", 
+      title: "Gestión de Candidatos", 
       url: "/dashboard/candidatos",
-      icon: Users,
-    },
-    {
-      title: "Candidatos sin actividad",
-      url: "/dashboard/sinpublicacion",
       icon: Users,
     },
   ],

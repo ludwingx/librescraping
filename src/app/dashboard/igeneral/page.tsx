@@ -9,15 +9,10 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import prisma from "@/lib/prisma";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Button } from "@/components/ui/button";
-import { BoletinDownloader } from "@/components/BoletinDownloader";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ExcelDownloadModal } from "@/components/ExcelDownloadModal";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface PostGeneral {
   candidatoid: string;
@@ -46,13 +41,19 @@ export default function Page() {
     const hoy = new Date();
     const ayer = new Date(hoy);
     ayer.setDate(hoy.getDate() - 1);
-    return ayer.toISOString().slice(0, 10);
+    const yyyy = ayer.getFullYear();
+    const mm = String(ayer.getMonth() + 1).padStart(2, "0");
+    const dd = String(ayer.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   });
   const [hasta, setHasta] = useState(() => {
     const hoy = new Date();
     const ayer = new Date(hoy);
     ayer.setDate(hoy.getDate() - 1);
-    return ayer.toISOString().slice(0, 10);
+    const yyyy = ayer.getFullYear();
+    const mm = String(ayer.getMonth() + 1).padStart(2, "0");
+    const dd = String(ayer.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   });
   const [allPosts, setAllPosts] = useState<PostGeneral[]>([]);
 
@@ -66,12 +67,9 @@ export default function Page() {
         const resPosts = await fetch(`/api/general-posts?desde=${desde}&hasta=${hasta}`);
         const dataPosts = await resPosts.json();
         setAllPosts(dataPosts.allPosts || []);
-
-
       } catch (err) {
         console.error("[IGENERAL] Error en fetchPosts:", err);
         setAllPosts([]);
-        ([]);
       }
       setLoading(false);
     };
@@ -87,8 +85,6 @@ export default function Page() {
     if (!postsPorDepartamento[dep]) postsPorDepartamento[dep] = [];
     postsPorDepartamento[dep].push(post);
   });
-  console.log("[IGENERAL] allPosts:", allPosts);
-  console.log("[IGENERAL] postsPorDepartamento:", postsPorDepartamento);
 
   return (
     <>
@@ -108,29 +104,37 @@ export default function Page() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex items-center gap-2 ml-auto pr-2">
-              <img
-                className="w-35 h-10 object-contain"
-                src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FrFJtBVqs%2FProyecto-nuevo-3.png&w=256&q=75"
-                alt="Libre-Scraping Logo 1"
-                width={120}
-                height={40}
-              />
-              <img
-                className="w-22 h-10 object-contain"
-                src="https://noticias-admin-panel.vercel.app/_next/image/?url=https%3A%2F%2Fi.postimg.cc%2FMZDMg3pY%2FProyecto-nuevo-1.png&w=128&q=75"
-                alt="Libre-Scraping Logo 2"
-                width={80}
-                height={40}
-              />
-            </div>
           </div>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-8 p-2 pt-0 max-w-screen-xl mx-auto">
-        <div className="container mx-auto py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-3xl font-bold">Informe General: Publicaciones por Departamento</h1>
+      <div className="w-full max-w-5xl mx-auto px-2 sm:px-6 py-2 sm:py-4 text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-4">
+          <h1 className="text-2xl sm:text-2xl font-bold">Informe General: Publicaciones por Departamento</h1>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 w-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto flex-1">
+            <h1 className="text-sm font-bold">Filtrar por fecha:</h1>
+            <label htmlFor="desde" className="font-medium">Desde:</label>
+            <input
+              id="desde"
+              type="date"
+              className="border rounded px-2 py-1"
+              value={desde}
+              onChange={e => setDesde(e.target.value)}
+              max={hasta}
+            />
+            <label htmlFor="hasta" className="font-medium ml-4">Hasta:</label>
+            <input
+              id="hasta"
+              type="date"
+              className="border rounded px-2 py-1"
+              value={hasta}
+              onChange={e => setHasta(e.target.value)}
+              min={desde}
+            />
+            {loading && <span className="text-blue-600">Cargando datos...</span>}
+          </div>
+          <div className="w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
             <ExcelDownloadModal
               posts={allPosts.map(post => ({
                 perfil: post.perfil || "",
@@ -151,54 +155,32 @@ export default function Page() {
               departamentoNombre={"INFORME GENERAL"}
             />
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
-            <label htmlFor="desde" className="font-medium">Desde:</label>
-            <input
-              id="desde"
-              type="date"
-              className="border rounded px-2 py-1"
-              value={desde}
-              onChange={e => setDesde(e.target.value)}
-              max={hasta}
-            />
-            <label htmlFor="hasta" className="font-medium ml-2">Hasta:</label>
-            <input
-              id="hasta"
-              type="date"
-              className="border rounded px-2 py-1"
-              value={hasta}
-              onChange={e => setHasta(e.target.value)}
-              min={desde}
-            />
-            {loading && <span className="text-blue-600 ml-4">Cargando datos...</span>}
-          </div>
         </div>
+
         {/* Mostrar PRESIDENTE y VICEPRESIDENTE */}
         {["PRESIDENTE", "VICEPRESIDENTE"].map(titularidad => {
           const rows = allPosts.filter(post => (post.titularidad || "").toUpperCase() === titularidad);
           const isOpen = openRows[titularidad] || false;
           const rowsToShow = isOpen ? rows : rows.slice(0, 5);
           return (
-            <div key={titularidad} className="container mx-auto py-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold">{titularidad}</h2>
-                </div>
+            <div key={titularidad} className="mb-12">
+              <div className="flex items-center gap-4 mb-6">
+                <h2 className="text-base sm:text-lg font-bold">{titularidad}</h2>
               </div>
               <div className="w-full overflow-x-auto p-2">
                 <div className="overflow-x-auto">
-                  <Table className="w-full min-w-[700px] sm:min-w-[1050px]">
+                  <Table className="w-full min-w-[500px] sm:min-w-[900px] border border-gray-200 rounded-lg bg-white text-xs">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
-                        <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Me gusta</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Vistas</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Comentarios</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Compartidos</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-1 py-1 min-w-[30px]">Nombre</TableHead>
+                        <TableHead className="px-1 py-1 min-w-[120px]">Texto</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center">Me gusta</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center">Vistas</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Comentarios</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Compartidos</TableHead>
+                        <TableHead className="px-1 py-1 w-20 hidden lg:table-cell">Red Social</TableHead>
+                        <TableHead className="px-1 py-1 w-24 hidden lg:table-cell">Fecha y hora</TableHead>
+                        <TableHead className="px-1 py-1 w-14 text-center hidden lg:table-cell">Ver post</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -210,18 +192,18 @@ export default function Page() {
                         </TableRow>
                       ) : (
                         rowsToShow.map((post: PostGeneral, idx: number) => (
-                          <TableRow key={`${titularidad}-${post.candidatoid}-${idx}`}>
-                            <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
+                          <TableRow key={`${titularidad}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                            <TableCell className="px-1 py-1 max-w-[100px] truncate">
                               <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
                               <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
                             </TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.likes}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                            <TableCell className="px-1 py-1 max-w-[120px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                            <TableCell className="px-1 py-1 text-center">{post.likes}</TableCell>
+                            <TableCell className="px-1 py-1 text-center">{post.vistas ?? '-'}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.compartidos}</TableCell>
                             <TableCell
-                              className={`px-1.5 py-1.5 w-[120px] hidden lg:table-cell text-center font-bold 
+                              className={`px-1 py-1 hidden lg:table-cell text-center font-bold 
     ${post.redsocial === 'Facebook' ? 'bg-blue-600 text-white' : ''}
     ${post.redsocial === 'Instagram' ? 'bg-pink-500 text-white' : ''}
     ${post.redsocial === 'TikTok' ? 'bg-black text-white' : ''}
@@ -229,8 +211,8 @@ export default function Page() {
                             >
                               {post.redsocial}
                             </TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
+                            <TableCell className="px-1 py-1 hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden lg:table-cell">
                               <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
                             </TableCell>
                           </TableRow>
@@ -255,6 +237,7 @@ export default function Page() {
             </div>
           );
         })}
+
         {/* Mostrar tablas por departamento */}
         {[
           "LA PAZ",
@@ -271,27 +254,25 @@ export default function Page() {
           const isOpen = openRows[dep] || false;
           const rowsToShow = isOpen ? rows : rows.slice(0, 5);
           return (
-            <div key={dep} className="container mx-auto py-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold">{dep}</h2>
-                </div>
+            <div key={dep} className="mb-12">
+              <div className="flex items-center gap-4 mb-6">
+                <h2 className="text-base sm:text-lg font-bold">{dep}</h2>
               </div>
               <div className="w-full overflow-x-auto p-2">
                 <div className="overflow-x-auto">
-                  <Table className="w-full min-w-[700px] sm:min-w-[1050px]">
+                  <Table className="w-full min-w-[500px] sm:min-w-[900px] border border-gray-200 rounded-lg bg-white text-xs">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="px-1.5 py-1.5 min-w-[200px] w-[200px]">Nombre</TableHead>
-                        <TableHead className="px-1.5 py-1.5 min-w-[260px] w-[260px]">Texto</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[100px] text-center">Departamento</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Me gusta</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[60px] text-center">Vistas</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Comentarios</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">Compartidos</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[120px] hidden lg:table-cell">Red Social</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">Fecha y hora</TableHead>
-                        <TableHead className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">Ver post</TableHead>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-1 py-1 min-w-[30px]">Nombre</TableHead>
+                        <TableHead className="px-1 py-1 min-w-[120px]">Texto</TableHead>
+                        <TableHead className="px-1 py-1 w-24 text-center">Departamento</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center">Me gusta</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center">Vistas</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Comentarios</TableHead>
+                        <TableHead className="px-1 py-1 w-16 text-center hidden md:table-cell">Compartidos</TableHead>
+                        <TableHead className="px-1 py-1 w-20 hidden lg:table-cell">Red Social</TableHead>
+                        <TableHead className="px-1 py-1 w-24 hidden lg:table-cell">Fecha y hora</TableHead>
+                        <TableHead className="px-1 py-1 w-14 text-center hidden lg:table-cell">Ver post</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -303,19 +284,19 @@ export default function Page() {
                         </TableRow>
                       ) : (
                         rowsToShow.map((post: PostGeneral, idx: number) => (
-                          <TableRow key={`${dep}-${post.candidatoid}-${idx}`}>
-                            <TableCell className="px-1.5 py-1.5 w-[200px] max-w-[200px] truncate">
+                          <TableRow key={`${dep}-${post.candidatoid}-${idx}`} className="odd:bg-white even:bg-gray-50">
+                            <TableCell className="px-1 py-1 max-w-[100px] truncate">
                               <div className="font-medium text-gray-900 text-xs">{post.perfil}</div>
                               <a href={post.perfilurl} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs">Perfil</a>
                             </TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[260px] max-w-[260px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[100px] text-center">{post.departamento}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.likes}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[60px] text-center">{post.vistas ?? '-'}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.comentarios}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[70px] text-center hidden md:table-cell">{post.compartidos}</TableCell>
+                            <TableCell className="px-1 py-1 max-w-[120px] truncate" title={post.texto}>{post.texto?.slice(0, 50)}{post.texto?.length > 50 ? "..." : ""}</TableCell>
+                            <TableCell className="px-1 py-1 text-center">{post.departamento}</TableCell>
+                            <TableCell className="px-1 py-1 text-center">{post.likes}</TableCell>
+                            <TableCell className="px-1 py-1 text-center">{post.vistas ?? '-'}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.comentarios}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden md:table-cell">{post.compartidos}</TableCell>
                             <TableCell
-                              className={`px-1.5 py-1.5 w-[120px] hidden lg:table-cell text-center font-bold 
+                              className={`px-1 py-1 hidden lg:table-cell text-center font-bold 
     ${post.redsocial === 'Facebook' ? 'bg-blue-600 text-white' : ''}
     ${post.redsocial === 'Instagram' ? 'bg-pink-500 text-white' : ''}
     ${post.redsocial === 'TikTok' ? 'bg-black text-white' : ''}
@@ -323,8 +304,8 @@ export default function Page() {
                             >
                               {post.redsocial}
                             </TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[170px] hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
-                            <TableCell className="px-1.5 py-1.5 w-[90px] text-center hidden lg:table-cell">
+                            <TableCell className="px-1 py-1 hidden lg:table-cell">{post.fechapublicacion ? new Date(post.fechapublicacion).toLocaleString('es-BO', { dateStyle: 'long', timeStyle: 'short' }) : ''}</TableCell>
+                            <TableCell className="px-1 py-1 text-center hidden lg:table-cell">
                               <a href={post.posturl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Ver post</a>
                             </TableCell>
                           </TableRow>
