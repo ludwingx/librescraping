@@ -175,7 +175,7 @@ function CandidateActivityOverviewImpl() {
                 tickMargin={8}
                 tick={{ fontSize: 12 }}
                 allowDecimals={false}
-                domain={[0, 100]}
+                domain={[0, (dataMax: any) => Math.max(100, Math.ceil(dataMax / 50) * 50)]}
                 label={{
                   value: "Publicaciones",
                   angle: -90,

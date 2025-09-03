@@ -13,7 +13,7 @@ import { CandidatePostCounts } from "@/components/CandidatePostCounts";
 import { CandidateActivityOverview } from "@/components/CandidateActivityOverview";
 import { SocialMediaPieChart } from "@/components/dashboard/SocialMediaPieChart";
 import { QuickActionCard } from "@/components/ui/quick-action-card";
-import { BarChart3, Download, PieChart, Users } from "lucide-react";
+import { BarChart3, Download, FileText, PieChart, Users } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -131,7 +131,7 @@ export default async function Page() {
 
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <div className="flex items-center w-full gap-2 px-4">
           <div className="flex items-center gap-2 flex-grow min-w-0">
@@ -162,110 +162,175 @@ export default async function Page() {
           </div>
         </div>
       </header>
+      
       <main className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-gradient-to-b from-blue-50 via-white to-white min-h-screen">
-        <div className="w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
+              <p className="text-sm text-gray-500">Resumen general de actividad en redes sociales</p>
+            </div>
+            <ExcelDownloadModal 
+              posts={posts} 
+              sinActividad={[]} 
+              departamentoNombre={"General"}
+              className="w-full sm:w-auto"
+            />
+          </div>
+        </div>
+        <div className="w-full mx-auto  px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch w-full">
         
-            {/* Cards resumen (4) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            {/* Primera fila de métricas principales - 5 cards en una fila */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
               {/* Card 1: Candidatos activos ayer */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Candidatos activos ayer</CardTitle>
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-blue-500" /> Activos ayer
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-700">{activeYesterday}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
+                <CardContent className="p-3 pt-1">
+                  <div className="text-2xl font-bold text-blue-700">{activeYesterday}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{yStr}</p>
                 </CardContent>
               </Card>
 
-              {/* Card 2: % Participación ayer */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Participación de candidatos (ayer)</CardTitle>
+              {/* Card 2: Total candidatos */}
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-green-500" /> Total candidatos
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <ParticipationPieChart 
-                    active={activeYesterday} 
-                    total={totalCandidates} 
-                    candidateName="candidatos"
-                    date={yStr}
+                <CardContent className="p-3 pt-1">
+                  <div className="text-2xl font-bold text-green-600">{totalCandidates}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Registrados</p>
+                </CardContent>
+              </Card>
+
+              {/* Card 3: % Participación */}
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <PieChart className="w-3.5 h-3.5 text-purple-500" /> Participación
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-1">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {totalCandidates > 0 ? ((activeYesterday / totalCandidates) * 100).toFixed(1) : 0}%
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Últimas 24h</p>
+                </CardContent>
+              </Card>
+
+              {/* Card 4: Promedio diario */}
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <BarChart3 className="w-3.5 h-3.5 text-amber-500" /> Promedio/día
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-1">
+                  <div className="text-2xl font-bold text-amber-600">{avgDaily7d.toFixed(1)}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Últimos 7 días</p>
+                </CardContent>
+              </Card>
+
+              {/* Card 5: Total publicaciones */}
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-rose-500" /> Publicaciones
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-1">
+                  <div className="text-2xl font-bold text-rose-600">{posts.length}</div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Totales</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Segunda fila: Distribución por red con dos cards a la derecha */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full mt-4">
+              {/* Card de distribución por red */}
+              <Card className="lg:col-span-2 bg-white shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium text-muted-foreground">
+                    Distribución por red social
+                  </CardTitle>
+                  <CardDescription className="text-xs">Actividad en las últimas 24 horas</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0 pb-6 flex-1 flex items-center justify-center min-h-[350px] lg:min-h-[400px] p-4">
+                  <SocialMediaPieChart 
+                    data={[
+                      { platform: 'Facebook', count: fb7 },
+                      { platform: 'Instagram', count: ig7 },
+                      { platform: 'TikTok', count: tk7 }
+                    ]} 
                   />
                 </CardContent>
               </Card>
 
-              {/* Card 3: Promedio publicaciones diarios (7d) */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Promedio diario (últimos 7 días)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-700">{avgDaily7d.toFixed(1)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Rango: {start7Str} al {yStr}</p>
-                </CardContent>
-              </Card>
+              {/* Columna con dos cards en ancho completo */}
+              <div className="lg:col-span-3 grid grid-cols-1 gap-4">
+                {/* Fila superior: Dos cards en una sola fila */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Card: Publicaciones de ayer */}
+                  <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Publicaciones ayer
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-4xl font-bold text-blue-700">{postsYesterdayCount}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
+                    </CardContent>
+                  </Card>
 
-              {/* Card 4: Descargar Excel (compacto) */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Download className="w-4 h-4 text-blue-500" /> Descargar Excel
-                  </CardTitle>
-                  <CardDescription>
-                    Descarga un archivo Excel con los datos de las publicaciones.
-                  </CardDescription>
+                  {/* Card: Candidatos inactivos */}
+                  <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Candidatos inactivos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-4xl font-bold text-amber-600">{candidatesNoActivityYesterday}</div>
+                      <p className="text-xs text-muted-foreground mt-1">De {totalCandidates} totales ({(totalCandidates > 0 ? (candidatesNoActivityYesterday / totalCandidates * 100).toFixed(1) : 0)}%)</p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                </CardHeader>
-                <CardContent>
-                  <ExcelDownloadModal posts={posts} sinActividad={[]} departamentoNombre={"General"} />
-                </CardContent>
-              </Card>
-            </div>
-            {/* Más métricas (4 nuevas cards) */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-              {/* Card: Publicaciones de ayer */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Publicaciones ayer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-700">{postsYesterdayCount}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
-                </CardContent>
-              </Card>
-
-              {/* Card: Candidatos sin actividad ayer */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Candidatos sin actividad (ayer)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-amber-600">{candidatesNoActivityYesterday}</div>
-                  <p className="text-xs text-muted-foreground mt-1">De {totalCandidates} totales</p>
-                </CardContent>
-              </Card>
-
-              {/* Card ancha (col-span-2): Distribución por red (7 días) */}
-              <div className="lg:col-span-2">
-                <SocialMediaPieChart 
-                  data={[
-                    { platform: 'Facebook', count: fb7 },
-                    { platform: 'Instagram', count: ig7 },
-                    { platform: 'TikTok', count: tk7 }
-                  ]} 
-                />
+                {/* Card ancha: Top departamento */}
+                <Card className="bg-white shadow-sm hover:shadow-md transition-shadow mt-4">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Departamento con más actividad
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold text-blue-700">{topDeptYesterday}</div>
+                        <p className="text-sm text-muted-foreground mt-1">{topDeptYesterdayCount} publicaciones</p>
+                      </div>
+                      <div className="text-4xl">🏆</div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-
             </div>
-            <div className="pt-4">
-              <CandidateActivityOverview />
-            </div>
-            <CandidatePostCounts />
-            </div>
-
-            
           </div>
+          <div className="pt-4">
+            <CandidateActivityOverview />
+          </div>
+          <div className="pt-4">
+            <CandidatePostCounts />
+          </div>
+        </div>
       </main>
-    </>
+    </div>
   );
 }

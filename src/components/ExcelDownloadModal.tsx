@@ -4,6 +4,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Button } from "@/components/ui/button";
 
 import type { Post } from "@/types/Post";
+import { FileSpreadsheet } from "lucide-react";
 
 interface SinActividadItem {
   candidato: string;
@@ -28,9 +29,10 @@ interface ExcelDownloadModalProps {
   posts: Post[];
   sinActividad?: SinActividadItem[];
   departamentoNombre: string;
+  className?: string;
 }
 
-export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, sinActividad = [], departamentoNombre }) => {
+export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, sinActividad = [], departamentoNombre, className = "" }: ExcelDownloadModalProps) => {
   // Fecha por defecto: ayer (zona local del navegador)
   const defaultDate = () => {
     const hoy = new Date();
@@ -87,7 +89,7 @@ export const ExcelDownloadModal: React.FC<ExcelDownloadModalProps> = ({ posts, s
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">Descargar Excel</Button>
+        <Button variant="default" className={`bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto ${className}`}>Descargar Excel <FileSpreadsheet /></Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl w-full">
         <DialogHeader>
