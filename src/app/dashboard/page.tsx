@@ -163,10 +163,10 @@ export default async function Page() {
         </div>
       </header>
       
-      <main className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-gradient-to-b from-blue-50 via-white to-white min-h-screen">
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+      <main className="flex flex-1 flex-col gap-4 p-4 pt-0  via-white to-white min-h-screen">
+        <div className="bg-white p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4">
+            <div className="flex flex-col ">
               <h1 className="text-2xl font-bold text-gray-800">Panel de Control</h1>
               <p className="text-sm text-gray-500">Resumen general de actividad en redes sociales</p>
             </div>
@@ -181,8 +181,8 @@ export default async function Page() {
         <div className="w-full mx-auto  px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-stretch w-full">
         
-            {/* Primera fila de métricas principales - 5 cards en una fila */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
+            {/* Primera fila de métricas principales - 3 cards en una fila */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
               {/* Card 1: Candidatos activos ayer */}
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="p-3 pb-1">
@@ -223,45 +223,19 @@ export default async function Page() {
                   <p className="text-[10px] text-muted-foreground mt-0.5">Últimas 24h</p>
                 </CardContent>
               </Card>
-
-              {/* Card 4: Promedio diario */}
-              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="p-3 pb-1">
-                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                    <BarChart3 className="w-3.5 h-3.5 text-amber-500" /> Promedio/día
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <div className="text-2xl font-bold text-amber-600">{avgDaily7d.toFixed(1)}</div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Últimos 7 días</p>
-                </CardContent>
-              </Card>
-
-              {/* Card 5: Total publicaciones */}
-              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="p-3 pb-1">
-                  <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-rose-500" /> Publicaciones
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <div className="text-2xl font-bold text-rose-600">{posts.length}</div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Totales</p>
-                </CardContent>
-              </Card>
             </div>
 
             {/* Segunda fila: Distribución por red con dos cards a la derecha */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 w-full mt-4">
-              {/* Card de distribución por red */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full mt-4">
+              {/* Card: Distribución por red social */}
               <Card className="lg:col-span-2 bg-white shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-medium text-muted-foreground">
                     Distribución por red social
                   </CardTitle>
-                  <CardDescription className="text-xs">Actividad en las últimas 24 horas</CardDescription>
+                  <CardDescription className="text-xs">Actividad de los últimos 7 días</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0 pb-6 flex-1 flex items-center justify-center min-h-[350px] lg:min-h-[400px] p-4">
+                <CardContent className="pt-0 pb-6 flex-1 flex flex-col items-center justify-center min-h-[350px] lg:min-h-[400px] p-4">
                   <SocialMediaPieChart 
                     data={[
                       { platform: 'Facebook', count: fb7 },
@@ -269,45 +243,56 @@ export default async function Page() {
                       { platform: 'TikTok', count: tk7 }
                     ]} 
                   />
+                  <div className="w-full mt-4 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-xs font-semibold text-blue-600">Facebook</div>
+                      <div className="text-lg font-bold text-blue-700">{totalNet7 > 0 ? ((fb7 / totalNet7) * 100).toFixed(1) : 0}%</div>
+                      <div className="text-xs text-muted-foreground">{fb7} publicaciones</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-pink-600">Instagram</div>
+                      <div className="text-lg font-bold text-pink-700">{totalNet7 > 0 ? ((ig7 / totalNet7) * 100).toFixed(1) : 0}%</div>
+                      <div className="text-xs text-muted-foreground">{ig7} publicaciones</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-amber-600">TikTok</div>
+                      <div className="text-lg font-bold text-amber-700">{totalNet7 > 0 ? ((tk7 / totalNet7) * 100).toFixed(1) : 0}%</div>
+                      <div className="text-xs text-muted-foreground">{tk7} publicaciones</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-
-              {/* Columna con dos cards en ancho completo */}
-              <div className="lg:col-span-3 grid grid-cols-1 gap-4">
-                {/* Fila superior: Dos cards en una sola fila */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Card: Publicaciones de ayer */}
-                  <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Publicaciones ayer
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-4xl font-bold text-blue-700">{postsYesterdayCount}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
-                    </CardContent>
-                  </Card>
-
-                  {/* Card: Candidatos inactivos */}
-                  <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Candidatos inactivos
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-4xl font-bold text-amber-600">{candidatesNoActivityYesterday}</div>
-                      <p className="text-xs text-muted-foreground mt-1">De {totalCandidates} totales ({(totalCandidates > 0 ? (candidatesNoActivityYesterday / totalCandidates * 100).toFixed(1) : 0)}%)</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Card ancha: Top departamento */}
-                <Card className="bg-white shadow-sm hover:shadow-md transition-shadow mt-4">
+              {/* Grid anidado para las otras 3 cards */}
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Card: Publicaciones ayer */}
+                <Card className="bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Departamento con más actividad
+                      Publicaciones ayer
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold text-blue-700">{postsYesterdayCount}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Fecha: {yStr}</p>
+                  </CardContent>
+                </Card>
+                {/* Card: Candidatos inactivos */}
+                <Card className="bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Candidatos inactivos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold text-amber-600">{candidatesNoActivityYesterday}</div>
+                    <p className="text-xs text-muted-foreground mt-1">De {totalCandidates} totales ({(totalCandidates > 0 ? (candidatesNoActivityYesterday / totalCandidates * 100).toFixed(1) : 0)}%)</p>
+                  </CardContent>
+                </Card>
+                {/* Card: Departamento con más actividad ayer (debajo, ocupando 2 columnas) */}
+                <Card className="bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between md:col-span-2">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Departamento con más actividad ayer
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -330,7 +315,10 @@ export default async function Page() {
             <CandidatePostCounts />
           </div>
         </div>
+        
       </main>
+      
     </div>
+    
   );
 }
